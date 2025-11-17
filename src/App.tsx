@@ -128,6 +128,14 @@ const App = () => (
         icon={Target}
         options={{ label: 'Curation Sets' }}
       />
+      <Resource
+        name="typesense-synonyms"
+        list={SynonymSetList}
+        edit={SynonymSetEdit}
+        create={SynonymSetCreate}
+        icon={BookA}
+        options={{ label: 'Synonym Sets' }}
+      />
 
       {/* User Management */}
       <Resource

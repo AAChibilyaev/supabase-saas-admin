@@ -26,6 +26,25 @@ export const typesenseDataProvider: DataProvider = {
       }
     }
 
+    // Stopwords Management
+    if (resource === 'typesense-stopwords') {
+      try {
+        const result = await (typesenseClient as any).stopwords().retrieve()
+        const stopwords = result.stopwords || []
+
+        return {
+          data: stopwords.map((stopwordSet: any) => ({
+            ...stopwordSet,
+            id: stopwordSet.id
+          })),
+          total: stopwords.length
+        }
+      } catch (error) {
+        console.error('Failed to retrieve Typesense stopwords:', error)
+        throw error
+      }
+    }
+
     // Curation Sets Management
     if (resource === 'typesense-curations') {
       try {
@@ -131,6 +150,41 @@ export const typesenseDataProvider: DataProvider = {
         return { data: { ...result, id: result.id.toString() } }
       } catch (error) {
         console.error('Failed to retrieve Typesense key:', error)
+        throw error
+      }
+    }
+
+    // Stopwords Management
+    if (resource === 'typesense-stopwords') {
+      try {
+        const result = await (typesenseClient as any).stopwords().retrieve()
+        const stopwords = result.stopwords || []
+
+        return {
+          data: stopwords.map((stopwordSet: any) => ({
+            ...stopwordSet,
+            id: stopwordSet.id
+          })),
+          total: stopwords.length
+        }
+      } catch (error) {
+        console.error('Failed to retrieve Typesense stopwords:', error)
+        throw error
+      }
+    }
+
+    // Stopwords Management
+    if (resource === 'typesense-stopwords') {
+      try {
+        const result = await (typesenseClient as any).stopwords(params.id).retrieve()
+        return {
+          data: {
+            ...result,
+            id: result.id
+          }
+        }
+      } catch (error) {
+        console.error('Failed to retrieve stopwords set:', error)
         throw error
       }
     }
@@ -333,6 +387,48 @@ export const typesenseDataProvider: DataProvider = {
       }
     }
 
+    // Stopwords Management
+    if (resource === 'typesense-stopwords') {
+      try {
+        const result = await (typesenseClient as any).stopwords().retrieve()
+        const stopwords = result.stopwords || []
+
+        return {
+          data: stopwords.map((stopwordSet: any) => ({
+            ...stopwordSet,
+            id: stopwordSet.id
+          })),
+          total: stopwords.length
+        }
+      } catch (error) {
+        console.error('Failed to retrieve Typesense stopwords:', error)
+        throw error
+      }
+    }
+
+    // Stopwords Management
+    if (resource === 'typesense-stopwords') {
+      try {
+        const { id, stopwords, locale } = params.data
+        const result = await (typesenseClient as any)
+          .stopwords()
+          .upsert(id, {
+            stopwords: stopwords || [],
+            locale: locale || 'en'
+          })
+
+        return {
+          data: {
+            ...result,
+            id: result.id
+          }
+        }
+      } catch (error) {
+        console.error('Failed to create stopwords set:', error)
+        throw error
+      }
+    }
+
     // Curation Sets Management
     if (resource === 'typesense-curations') {
       try {
@@ -467,6 +563,49 @@ export const typesenseDataProvider: DataProvider = {
     // API keys cannot be updated in Typesense, only deleted and recreated
     if (resource === 'typesense-keys') {
       throw new Error('Typesense API keys cannot be updated. Please delete and create a new key.')
+    }
+
+    // Stopwords Management
+    if (resource === 'typesense-stopwords') {
+      try {
+        const result = await (typesenseClient as any).stopwords().retrieve()
+        const stopwords = result.stopwords || []
+
+        return {
+          data: stopwords.map((stopwordSet: any) => ({
+            ...stopwordSet,
+            id: stopwordSet.id
+          })),
+          total: stopwords.length
+        }
+      } catch (error) {
+        console.error('Failed to retrieve Typesense stopwords:', error)
+        throw error
+      }
+    }
+
+    // Stopwords Management
+    if (resource === 'typesense-stopwords') {
+      try {
+        const stopwordSetId = params.id.toString()
+        const { stopwords, locale } = params.data
+        const result = await (typesenseClient as any)
+          .stopwords()
+          .upsert(stopwordSetId, {
+            stopwords: stopwords || [],
+            locale: locale || 'en'
+          })
+
+        return {
+          data: {
+            ...result,
+            id: result.id
+          }
+        }
+      } catch (error) {
+        console.error('Failed to update stopwords set:', error)
+        throw error
+      }
     }
 
     // Curation Sets Management
@@ -635,6 +774,60 @@ export const typesenseDataProvider: DataProvider = {
       }
     }
 
+    // Stopwords Management
+    if (resource === 'typesense-stopwords') {
+      try {
+        const result = await (typesenseClient as any).stopwords().retrieve()
+        const stopwords = result.stopwords || []
+
+        return {
+          data: stopwords.map((stopwordSet: any) => ({
+            ...stopwordSet,
+            id: stopwordSet.id
+          })),
+          total: stopwords.length
+        }
+      } catch (error) {
+        console.error('Failed to retrieve Typesense stopwords:', error)
+        throw error
+      }
+    }
+
+    // Stopwords Management
+    if (resource === 'typesense-stopwords') {
+      try {
+        const stopwordSetId = params.id.toString()
+        const { stopwords, locale } = params.data
+        const result = await (typesenseClient as any)
+          .stopwords()
+          .upsert(stopwordSetId, {
+            stopwords: stopwords || [],
+            locale: locale || 'en'
+          })
+
+        return {
+          data: {
+            ...result,
+            id: result.id
+          }
+        }
+      } catch (error) {
+        console.error('Failed to update stopwords set:', error)
+        throw error
+      }
+    }
+
+    // Stopwords Management
+    if (resource === 'typesense-stopwords') {
+      try {
+        await (typesenseClient as any).stopwords(params.id).delete()
+        return { data: { id: params.id } }
+      } catch (error) {
+        console.error('Failed to delete stopwords set:', error)
+        throw error
+      }
+    }
+
     // Curation Sets Management
     if (resource === 'typesense-curations') {
       try {
@@ -729,6 +922,18 @@ export const typesenseDataProvider: DataProvider = {
 
     if (resource === 'typesense-keys') {
       // Delete keys individually
+
+    // Stopwords Management
+    if (resource === 'typesense-stopwords') {
+      // Delete stopwords sets individually
+      const promises = params.ids.map(id =>
+        (typesenseClient as any).stopwords(id).delete()
+      )
+
+      await Promise.all(promises)
+      return { data: params.ids }
+    }
+
       const promises = params.ids.map(id =>
         typesenseClient.keys(id).delete()
       )
