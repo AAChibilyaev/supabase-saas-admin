@@ -35,6 +35,20 @@ export const typesenseDataProvider: DataProvider = {
       }
     }
 
+    // NL Models Management (placeholder - API may not be available yet)
+    if (resource === 'typesense-nl-models') {
+      try {
+        // Placeholder: Return empty list for now as the API endpoint may not exist yet
+        return {
+          data: [],
+          total: 0
+        }
+      } catch (error) {
+        console.error('Failed to retrieve NL models:', error)
+        return { data: [], total: 0 }
+      }
+    }
+
     if (resource === 'typesense-keys') {
       try {
         const result = await typesenseClient.keys().retrieve()
@@ -130,25 +144,6 @@ export const typesenseDataProvider: DataProvider = {
           })),
           total: presets.length
         }
-    // Conversation Models Management
-    if (resource === 'typesense-conversations') {
-      try {
-        const result = await (typesenseClient as any).conversations.models().retrieve()
-        const models = result.models || []
-
-        return {
-          data: models.map((model: any) => ({
-            ...model,
-            id: model.id || model.model_name
-          })),
-          total: models.length
-        }
-      } catch (error) {
-        console.error('Failed to retrieve conversation models:', error)
-        throw error
-      }
-    }
-
       } catch (error) {
         console.error('Failed to retrieve Typesense presets:', error)
         throw error
@@ -323,22 +318,6 @@ export const typesenseDataProvider: DataProvider = {
             ...result,
             id: result.name
           }
-    // Conversation Models Management
-    if (resource === 'typesense-conversations') {
-      try {
-        const result = await (typesenseClient as any).conversations.models(params.id).retrieve()
-        return {
-          data: {
-            ...result,
-            id: result.id || result.model_name
-          }
-        }
-      } catch (error) {
-        console.error('Failed to retrieve conversation model:', error)
-        throw error
-      }
-    }
-
         }
       } catch (error) {
         console.error('Failed to retrieve preset:', error)
@@ -378,7 +357,7 @@ export const typesenseDataProvider: DataProvider = {
           }
         }
       } catch (error) {
-        console.error('Failed to create synonym set:' error)
+        console.error('Failed to create synonym set:', error)
         throw error
       }
     }
@@ -582,31 +561,6 @@ export const typesenseDataProvider: DataProvider = {
             ...result,
             id: result.name
           }
-    // Conversation Models Management
-    if (resource === 'typesense-conversations') {
-      try {
-        const { model_name, llm_model, conversation_config, enabled = true } = params.data
-        const result = await (typesenseClient as any)
-          .conversations.models()
-          .create({
-            model_name,
-            llm_model,
-            conversation_config,
-            enabled
-          })
-
-        return {
-          data: {
-            ...result,
-            id: result.id || result.model_name
-          }
-        }
-      } catch (error) {
-        console.error('Failed to create conversation model:', error)
-        throw error
-      }
-    }
-
         }
       } catch (error) {
         console.error('Failed to create preset:', error)
@@ -646,7 +600,7 @@ export const typesenseDataProvider: DataProvider = {
           }
         }
       } catch (error) {
-        console.error('Failed to create synonym set:' error)
+        console.error('Failed to create synonym set:', error)
         throw error
       }
     }
@@ -809,32 +763,6 @@ export const typesenseDataProvider: DataProvider = {
             ...result,
             id: result.name
           }
-    // Conversation Models Management
-    if (resource === 'typesense-conversations') {
-      try {
-        const modelId = params.id.toString()
-        const { model_name, llm_model, conversation_config, enabled } = params.data
-        const result = await (typesenseClient as any)
-          .conversations.models(modelId)
-          .update({
-            model_name,
-            llm_model,
-            conversation_config,
-            enabled
-          })
-
-        return {
-          data: {
-            ...result,
-            id: result.id || result.model_name
-          }
-        }
-      } catch (error) {
-        console.error('Failed to update conversation model:', error)
-        throw error
-      }
-    }
-
         }
       } catch (error) {
         console.error('Failed to update preset:', error)
@@ -874,7 +802,7 @@ export const typesenseDataProvider: DataProvider = {
           }
         }
       } catch (error) {
-        console.error('Failed to create synonym set:' error)
+        console.error('Failed to create synonym set:', error)
         throw error
       }
     }
@@ -1074,17 +1002,6 @@ export const typesenseDataProvider: DataProvider = {
         console.error('Failed to delete preset:', error)
         throw error
       }
-    // Conversation Models Management
-    if (resource === 'typesense-conversations') {
-      try {
-        await (typesenseClient as any).conversations.models(params.id).delete()
-        return { data: { id: params.id } }
-      } catch (error) {
-        console.error('Failed to delete conversation model:', error)
-        throw error
-      }
-    }
-
     }
 
     // Synonym Sets Management
@@ -1119,7 +1036,7 @@ export const typesenseDataProvider: DataProvider = {
           }
         }
       } catch (error) {
-        console.error('Failed to create synonym set:' error)
+        console.error('Failed to create synonym set:', error)
         throw error
       }
     }

@@ -22,6 +22,7 @@ import { SynonymSetList, SynonymSetEdit, SynonymSetCreate } from './resources/ty
 import { StopwordsList, StopwordsEdit, StopwordsCreate } from './resources/typesense-stopwords'
 import { AliasList, AliasEdit, AliasCreate } from './resources/typesense-aliases'
 import { ConversationModelList, ConversationModelCreate, ConversationModelEdit } from './resources/typesense-conversations'
+import { NLModelList, NLModelEdit, NLModelCreate } from './resources/typesense-nl-models'
 import { AnalyticsDashboard, AnalyticsRules, AnalyticsEvents } from './resources/typesense-analytics'
 import {
   SystemDashboard,
@@ -48,7 +49,8 @@ import {
   Activity,
   TrendingUp,
   Server,
-  MessageSquare
+  MessageSquare,
+  Brain
 } from 'lucide-react'
 
 // Custom theme based on shadcn
@@ -175,6 +177,14 @@ const App = () => (
         create={ConversationModelCreate}
         icon={MessageSquare}
         options={{ label: 'Conversation Models (RAG)' }}
+      />
+      <Resource
+        name="typesense-nl-models"
+        list={NLModelList}
+        edit={NLModelEdit}
+        create={NLModelCreate}
+        icon={Brain}
+        options={{ label: 'NL Search Models' }}
       />
 
       {/* Typesense Analytics */}
