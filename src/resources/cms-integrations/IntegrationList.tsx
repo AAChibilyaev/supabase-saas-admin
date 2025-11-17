@@ -82,7 +82,23 @@ const SyncButton = ({ record }: any) => {
       notify('Sync started successfully', { type: 'success' })
       refresh()
     } catch (error) {
-      notify('Failed to start sync', { type: 'error' })
+      // Log detailed error information
+      console.error('CMS sync failed:', {
+        integrationId: record.id,
+        integrationName: record.name,
+        cmsType: record.type,
+        error: error instanceof Error ? {
+          message: error.message,
+          stack: error.stack
+        } : error,
+        timestamp: new Date().toISOString()
+      })
+
+      const errorMessage = error instanceof Error
+        ? `Failed to start sync: ${error.message}`
+        : 'Failed to start sync'
+
+      notify(errorMessage, { type: 'error' })
     } finally {
       setSyncing(false)
     }

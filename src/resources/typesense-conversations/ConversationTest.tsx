@@ -27,7 +27,7 @@ export const ConversationTest = () => {
   )
 
   const handleSendMessage = async () => {
-    if (!input.trim() || isLoading) return
+    if (!input.trim() || isLoading || !model) return
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
@@ -41,31 +41,52 @@ export const ConversationTest = () => {
     setIsLoading(true)
 
     try {
-      // TODO: Implement actual API call to Typesense conversation endpoint
-      // For now, this is a placeholder that simulates a response
+      // Call Typesense conversation API
+      const typesenseUrl = import.meta.env.VITE_TYPESENSE_URL
+      const typesenseApiKey = import.meta.env.VITE_TYPESENSE_API_KEY
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      if (!typesenseUrl || !typesenseApiKey) {
+        throw new Error('Typesense configuration missing')
+      }
+
+      const conversationEndpoint = `${typesenseUrl}/conversations/models/${model.model_name}/conversations`
+
+      const response = await fetch(conversationEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-TYPESENSE-API-KEY': typesenseApiKey
+        },
+        body: JSON.stringify({
+          q: input.trim(),
+          conversation: messages.map(m => ({
+            role: m.role,
+            content: m.content
+          }))
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Unknown error' }))
+        throw new Error(error.message || `API request failed with status ${response.status}`)
+      }
+
+      const data = await response.json()
+
+      // Extract sources from Typesense response
+      const sources = data.conversation?.hits?.map((hit: any, idx: number) => ({
+        id: hit.document?.id || `doc-${idx}`,
+        title: hit.document?.title || hit.document?.name || 'Untitled Document',
+        content: hit.document?.content || hit.snippet || '',
+        score: hit.text_match || 0
+      })) || []
 
       const assistantMessage: Message = {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
-        content: 'This is a placeholder response. The actual implementation would call the Typesense conversation API with RAG retrieval.',
+        content: data.conversation?.answer || data.answer || 'No response received',
         timestamp: new Date(),
-        sources: [
-          {
-            id: 'doc-1',
-            title: 'Example Document 1',
-            content: 'Sample content...',
-            score: 0.95
-          },
-          {
-            id: 'doc-2',
-            title: 'Example Document 2',
-            content: 'Sample content...',
-            score: 0.87
-          }
-        ]
+        sources: sources.length > 0 ? sources : undefined
       }
 
       setMessages(prev => [...prev, assistantMessage])
@@ -75,7 +96,7 @@ export const ConversationTest = () => {
       const errorMessage: Message = {
         id: `error-${Date.now()}`,
         role: 'assistant',
-        content: 'Sorry, there was an error processing your message. Please try again.',
+        content: `Sorry, there was an error processing your message: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`,
         timestamp: new Date()
       }
 

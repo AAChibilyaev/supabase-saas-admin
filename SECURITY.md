@@ -9,7 +9,7 @@ This document tracks security considerations, vulnerabilities, and fixes for the
 ### ✅ CRITICAL: Security Definer Views (Issue #22)
 
 **Status:** Fixed
-**Date Fixed:** 2025-01-17
+**Date Fixed:** 2025-11-17
 **Severity:** Critical
 **CVSS Score:** N/A (Internal)
 
@@ -31,12 +31,16 @@ Views were created with `SECURITY DEFINER` option, which:
 
 #### Fix Applied
 
-**Migration:** `migrations/20250117_fix_security_definer_views.sql`
+**Migration:** `migrations/20251117_fix_security_definer.sql`
 
 1. Dropped existing views with `SECURITY DEFINER`
 2. Recreated views without `SECURITY DEFINER`
 3. Enabled `security_invoker` mode on both views
-4. Updated `supabase-setup.sql` with secure view definitions
+4. Added RLS policies to underlying tables:
+   - `embedding_analytics`
+   - `cms_connections`
+   - `cms_sync_logs`
+5. Ensured tenant isolation via `tenant_id` filtering
 
 #### Impact
 
@@ -65,6 +69,41 @@ WHERE c.relname IN ('embedding_statistics', 'cms_connection_stats')
 - GitHub Issue: #22
 - Detection: Supabase Security Advisor (Lint 0010)
 - Documentation: [Supabase Security Definer Linter](https://supabase.com/docs/guides/database/database-linter?lint=0010_security_definer_view)
+
+---
+
+## Supabase Dashboard Configuration
+
+The following security settings should be configured in the Supabase Dashboard:
+
+### Authentication Security
+
+#### Leaked Password Protection
+**Status:** Requires Manual Configuration
+**Location:** Supabase Dashboard > Authentication > Policies
+
+Enable leaked password protection to prevent users from using compromised passwords:
+1. Navigate to Authentication > Policies in Supabase Dashboard
+2. Enable "Leaked Password Protection"
+3. This checks passwords against known breach databases
+4. Users will be required to choose a different password if detected
+
+**Migration:** `migrations/20250117_enable_password_protection_and_mfa.sql` (documentation only)
+
+#### Multi-Factor Authentication (MFA)
+**Status:** Requires Manual Configuration
+**Location:** Supabase Dashboard > Authentication > MFA
+
+Enable additional MFA options for enhanced security:
+1. Navigate to Authentication > MFA in Supabase Dashboard
+2. Enable supported MFA methods:
+   - **TOTP (Time-based One-Time Password)** - Already enabled
+   - **SMS** - Configure if needed (requires Twilio integration)
+   - **Phone** - Configure if needed
+3. Consider making MFA mandatory for admin roles
+4. Set MFA grace period appropriately
+
+**Note:** These settings are configured at the project level in Supabase Dashboard and cannot be fully automated via migrations.
 
 ---
 
@@ -215,7 +254,9 @@ If you discover a security vulnerability:
 
 ## Version History
 
-- **2025-01-17**: Fixed Security Definer Views vulnerability (Issue #22)
+- **2025-11-17**: Fixed Security Definer Views vulnerability (migration created)
+- **2025-11-17**: Added Supabase Dashboard configuration notes
+- **2025-11-17**: Documented leaked password protection and MFA requirements
 - **2025-01-17**: Initial security documentation created
 
 ## Additional Resources
