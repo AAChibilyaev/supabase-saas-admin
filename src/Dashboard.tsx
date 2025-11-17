@@ -17,6 +17,21 @@ import { StorageUsageChart } from './components/dashboard/StorageUsageChart'
 import { ApiUsageChart } from './components/dashboard/ApiUsageChart'
 import { ExportData } from './components/dashboard/ExportData'
 import { TypesenseHealthWidget } from './components/dashboard/TypesenseHealthWidget'
+import { EmbeddingStatsChart } from './components/dashboard/EmbeddingStatsChart'
+import { PlanDistributionChart } from './components/dashboard/PlanDistributionChart'
+import { SearchHeatmapChart } from './components/dashboard/SearchHeatmapChart'
+
+// Import analytics services
+import {
+  getEmbeddingStats,
+  getSearchHeatmap,
+  type EmbeddingStatsData,
+  type SearchHeatmapData,
+  type PlanDistributionData
+} from './services/analytics'
+
+// Import real-time hook
+import { useRealtimeAnalytics } from './hooks/useRealtimeAnalytics'
 
 interface StatsData {
   totalTenants: number
@@ -80,11 +95,17 @@ export const Dashboard = () => {
     searchVolume: any[]
     storageUsage: any[]
     apiUsage: any[]
+    embeddingStats: EmbeddingStatsData[]
+    searchHeatmap: SearchHeatmapData[]
+    planDistribution: PlanDistributionData[]
   }>({
     tenantGrowth: [],
     searchVolume: [],
     storageUsage: [],
-    apiUsage: []
+    apiUsage: [],
+    embeddingStats: [],
+    searchHeatmap: [],
+    planDistribution: []
   })
 
   // Get real data from Supabase
@@ -160,11 +181,40 @@ export const Dashboard = () => {
         unique_users_count: stat.unique_users_count || 0
       }))
 
+      // Fetch additional analytics data
+      const embeddingStats = await getEmbeddingStats(30)
+      const searchHeatmap = await getSearchHeatmap(7)
+
+      // Calculate plan distribution
+      const planCounts = new Map<string, { count: number; revenue: number }>()
+      const planPrices: Record<string, number> = { free: 0, pro: 29, scale: 99, enterprise: 299 }
+
+      tenants?.forEach((tenant: any) => {
+        const plan = tenant.plan_type || 'free'
+        if (!planCounts.has(plan)) {
+          planCounts.set(plan, { count: 0, revenue: 0 })
+        }
+        const planData = planCounts.get(plan)!
+        planData.count++
+        planData.revenue += planPrices[plan] || 0
+      })
+
+      const totalTenants = tenants?.length || 1
+      const planDistributionData: PlanDistributionData[] = Array.from(planCounts.entries()).map(([plan, data]) => ({
+        plan,
+        count: data.count,
+        revenue: data.revenue,
+        percentage: (data.count / totalTenants) * 100
+      }))
+
       setChartData({
         tenantGrowth: tenantGrowthData,
         searchVolume: searchVolumeData,
         storageUsage: storageUsageData,
-        apiUsage: apiUsageData
+        apiUsage: apiUsageData,
+        embeddingStats,
+        searchHeatmap,
+        planDistribution: planDistributionData
       })
     }
 
@@ -195,6 +245,18 @@ export const Dashboard = () => {
 
   const isLoading = tenantsLoading || documentsLoading || searchLogsLoading || userTenantsLoading
 
+  // Enable real-time analytics updates
+  const { isLive } = useRealtimeAnalytics(
+    () => {
+      // Refresh data when updates occur
+      window.location.reload() // Simple refresh for now
+    },
+    {
+      enabled: true,
+      refreshInterval: 30000 // 30 seconds
+    }
+  )
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -202,6 +264,12 @@ export const Dashboard = () => {
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground mt-2">
             Overview of your SaaS Search Service
+            {isLive && (
+              <Badge variant="outline" className="ml-3">
+                <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse" />
+                Live Updates
+              </Badge>
+            )}
           </p>
         </div>
         <ExportData data={dailyStats || []} filename="dashboard-metrics" />
@@ -335,8 +403,19 @@ export const Dashboard = () => {
               data={chartData.tenantGrowth}
               isLoading={dailyStatsLoading}
             />
+            <PlanDistributionChart
+              data={chartData.planDistribution}
+              isLoading={tenantsLoading}
+            />
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
             <SearchVolumeChart
               data={chartData.searchVolume}
+              isLoading={dailyStatsLoading}
+            />
+            <ApiUsageChart
+              data={chartData.apiUsage}
               isLoading={dailyStatsLoading}
             />
           </div>
@@ -346,9 +425,17 @@ export const Dashboard = () => {
               data={chartData.storageUsage}
               isLoading={tenantUsageLoading}
             />
-            <ApiUsageChart
-              data={chartData.apiUsage}
-              isLoading={dailyStatsLoading}
+            <EmbeddingStatsChart
+              data={chartData.embeddingStats}
+              isLoading={documentsLoading}
+            />
+          </div>
+
+          {/* Full width heatmap */}
+          <div className="grid gap-4">
+            <SearchHeatmapChart
+              data={chartData.searchHeatmap}
+              isLoading={searchLogsLoading}
             />
           </div>
         </TabsContent>
