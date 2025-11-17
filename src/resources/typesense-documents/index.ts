@@ -1,0 +1,6 @@
+export { DocumentList } from './DocumentList'
+export { DocumentCreate } from './DocumentCreate'
+export { DocumentEdit } from './DocumentEdit'
+export { DocumentShow } from './DocumentShow'
+export { DocumentImport } from './DocumentImport'
+export { DocumentExport } from './DocumentExport'

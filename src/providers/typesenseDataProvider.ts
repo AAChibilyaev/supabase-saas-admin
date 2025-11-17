@@ -22,6 +22,50 @@ export const typesenseDataProvider: DataProvider = {
       }
     }
 
+    // Documents Management - search in a specific collection
+    if (resource === 'typesense-documents') {
+      try {
+        const collection = params.filter?.collection
+
+        if (!collection) {
+          // No collection selected, return empty
+          return {
+            data: [],
+            total: 0
+          }
+        }
+
+        const { page, perPage } = params.pagination
+        const { field, order } = params.sort
+        const searchQuery = params.filter?.q || '*'
+
+        const result = await typesenseClient
+          .collections(collection)
+          .documents()
+          .search({
+            q: searchQuery,
+            query_by: params.filter?.query_by || '*',
+            filter_by: params.filter?.filter_by,
+            per_page: perPage,
+            page: page,
+            sort_by: field ? `${field}:${order.toLowerCase()}` : undefined,
+          })
+
+        return {
+          data: result.hits?.map((hit: any) => ({
+            ...hit.document,
+            id: hit.document.id,
+            _score: hit.text_match_info?.score || hit.text_match,
+            collection, // Include collection name in the record
+          })) || [],
+          total: result.found || 0,
+        }
+      } catch (error) {
+        console.error('Failed to search documents:', error)
+        throw error
+      }
+    }
+
     // System Operations - not applicable for getList
     if (resource === 'typesense-system') {
       return {
@@ -253,6 +297,34 @@ export const typesenseDataProvider: DataProvider = {
         }
       } catch (error) {
         console.error('Failed to retrieve collection:', error)
+        throw error
+      }
+    }
+
+    // Documents Management - retrieve a single document
+    if (resource === 'typesense-documents') {
+      try {
+        // ID format: collection:documentId
+        const [collection, documentId] = params.id.toString().split(':')
+
+        if (!collection || !documentId) {
+          throw new Error('Invalid document ID format. Expected: collection:documentId')
+        }
+
+        const result = await typesenseClient
+          .collections(collection)
+          .documents(documentId)
+          .retrieve()
+
+        return {
+          data: {
+            ...result,
+            id: result.id,
+            collection, // Include collection name
+          }
+        }
+      } catch (error) {
+        console.error('Failed to retrieve document:', error)
         throw error
       }
     }
@@ -499,6 +571,34 @@ export const typesenseDataProvider: DataProvider = {
   create: async (resource, params) => {
     if (!typesenseClient) {
       throw new Error('Typesense client is not initialized')
+    }
+
+    // Documents Management - create/index a new document
+    if (resource === 'typesense-documents') {
+      try {
+        const { collection, ...documentData } = params.data
+
+        if (!collection) {
+          throw new Error('Collection name is required')
+        }
+
+        // Remove collection from document data
+        const result = await typesenseClient
+          .collections(collection)
+          .documents()
+          .create(documentData)
+
+        return {
+          data: {
+            ...result,
+            id: result.id,
+            collection,
+          }
+        }
+      } catch (error) {
+        console.error('Failed to create document:', error)
+        throw error
+      }
     }
 
     // Collections Management
@@ -771,6 +871,34 @@ export const typesenseDataProvider: DataProvider = {
       throw new Error('Typesense client is not initialized')
     }
 
+    // Documents Management - update an existing document
+    if (resource === 'typesense-documents') {
+      try {
+        const { collection, ...documentData } = params.data
+
+        if (!collection) {
+          throw new Error('Collection name is required')
+        }
+
+        // Update document (upsert semantics)
+        const result = await typesenseClient
+          .collections(collection)
+          .documents(params.id.toString())
+          .update(documentData)
+
+        return {
+          data: {
+            ...result,
+            id: result.id || params.id,
+            collection,
+          }
+        }
+      } catch (error) {
+        console.error('Failed to update document:', error)
+        throw error
+      }
+    }
+
     // Collections Management
     if (resource === 'typesense-collections') {
       try {
@@ -1026,6 +1154,38 @@ export const typesenseDataProvider: DataProvider = {
       throw new Error('Batch update not supported for Typesense API keys')
     }
 
+    // Documents Management - bulk update using import API
+    if (resource === 'typesense-documents') {
+      try {
+        // Get collection from first document's data
+        const { collection, ...updateData } = params.data
+
+        if (!collection) {
+          throw new Error('Collection name is required for bulk update')
+        }
+
+        // Build documents for bulk import
+        const documents = params.ids.map(id => ({
+          id: id.toString(),
+          ...updateData
+        }))
+
+        // Use bulk import with upsert action (100x faster!)
+        await typesenseClient
+          .collections(collection)
+          .documents()
+          .import(documents, {
+            action: 'upsert',
+            batch_size: 100
+          })
+
+        return { data: params.ids }
+      } catch (error) {
+        console.error('Failed to bulk update documents:', error)
+        throw error
+      }
+    }
+
     // Use bulk import for better performance
     const documents = params.ids.map(id => ({
       id,
@@ -1043,6 +1203,38 @@ export const typesenseDataProvider: DataProvider = {
   delete: async (resource, params) => {
     if (!typesenseClient) {
       throw new Error('Typesense client is not initialized')
+    }
+
+    // Documents Management - delete a single document
+    if (resource === 'typesense-documents') {
+      try {
+        // ID format: collection:documentId or just documentId with collection in metadata
+        const idParts = params.id.toString().split(':')
+        let collection: string
+        let documentId: string
+
+        if (idParts.length === 2) {
+          [collection, documentId] = idParts
+        } else {
+          // Try to get collection from previousData
+          collection = params.previousData?.collection
+          documentId = params.id.toString()
+
+          if (!collection) {
+            throw new Error('Collection name is required for document deletion')
+          }
+        }
+
+        await typesenseClient
+          .collections(collection)
+          .documents(documentId)
+          .delete()
+
+        return { data: { id: params.id } }
+      } catch (error) {
+        console.error('Failed to delete document:', error)
+        throw error
+      }
     }
 
     // Collections Management
@@ -1254,6 +1446,46 @@ export const typesenseDataProvider: DataProvider = {
   deleteMany: async (resource, params) => {
     if (!typesenseClient) {
       throw new Error('Typesense client is not initialized')
+    }
+
+    // Documents Management - bulk delete documents
+    if (resource === 'typesense-documents') {
+      try {
+        // Group documents by collection (if IDs contain collection prefix)
+        const documentsByCollection = new Map<string, string[]>()
+
+        params.ids.forEach(id => {
+          const idStr = id.toString()
+          const parts = idStr.split(':')
+
+          if (parts.length === 2) {
+            const [collection, documentId] = parts
+            if (!documentsByCollection.has(collection)) {
+              documentsByCollection.set(collection, [])
+            }
+            documentsByCollection.get(collection)!.push(documentId)
+          }
+        })
+
+        // Delete documents by collection using filter (faster than individual deletes)
+        const promises = Array.from(documentsByCollection.entries()).map(
+          async ([collection, documentIds]) => {
+            // Use filter_by to delete multiple documents at once
+            await typesenseClient
+              .collections(collection)
+              .documents()
+              .delete({
+                filter_by: `id:[${documentIds.join(',')}]`
+              })
+          }
+        )
+
+        await Promise.all(promises)
+        return { data: params.ids }
+      } catch (error) {
+        console.error('Failed to bulk delete documents:', error)
+        throw error
+      }
     }
 
     // Collections Management

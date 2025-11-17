@@ -33,6 +33,12 @@ import {
 } from './resources/typesense-system'
 import { MultiSearchForm } from './resources/typesense-search'
 import { CollectionList, CollectionCreate, CollectionEdit, CollectionShow } from './resources/typesense-collections'
+import {
+  DocumentList as TypesenseDocumentList,
+  DocumentCreate as TypesenseDocumentCreate,
+  DocumentEdit as TypesenseDocumentEdit,
+  DocumentShow as TypesenseDocumentShow,
+} from './resources/typesense-documents'
 
 // Icons from lucide-react
 import {
@@ -56,7 +62,8 @@ import {
   Brain,
   Languages,
   SearchX,
-  Database
+  Database,
+  Files
 } from 'lucide-react'
 
 // Custom theme based on shadcn
@@ -144,6 +151,15 @@ const App = () => (
         show={CollectionShow}
         icon={Database}
         options={{ label: 'Collections' }}
+      />
+      <Resource
+        name="typesense-documents"
+        list={TypesenseDocumentList}
+        create={TypesenseDocumentCreate}
+        edit={TypesenseDocumentEdit}
+        show={TypesenseDocumentShow}
+        icon={Files}
+        options={{ label: 'Documents' }}
       />
       <Resource
         name="presets"
