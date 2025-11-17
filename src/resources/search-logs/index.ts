@@ -1,0 +1,1 @@
+export { SearchLogList } from './SearchLogList'
