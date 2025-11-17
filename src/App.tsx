@@ -21,6 +21,7 @@ import { CurationSetList, CurationSetEdit, CurationSetCreate } from './resources
 import { SynonymSetList, SynonymSetEdit, SynonymSetCreate } from './resources/typesense-synonyms'
 import { StopwordsList, StopwordsEdit, StopwordsCreate } from './resources/typesense-stopwords'
 import { AliasList, AliasEdit, AliasCreate } from './resources/typesense-aliases'
+import { ConversationModelList, ConversationModelCreate, ConversationModelEdit } from './resources/typesense-conversations'
 import { AnalyticsDashboard, AnalyticsRules, AnalyticsEvents } from './resources/typesense-analytics'
 import {
   SystemDashboard,
@@ -46,7 +47,8 @@ import {
   Link2,
   Activity,
   TrendingUp,
-  Server
+  Server,
+  MessageSquare
 } from 'lucide-react'
 
 // Custom theme based on shadcn
@@ -165,6 +167,14 @@ const App = () => (
         create={AliasCreate}
         icon={Link2}
         options={{ label: 'Collection Aliases' }}
+      />
+      <Resource
+        name="typesense-conversations"
+        list={ConversationModelList}
+        edit={ConversationModelEdit}
+        create={ConversationModelCreate}
+        icon={MessageSquare}
+        options={{ label: 'Conversation Models (RAG)' }}
       />
 
       {/* Typesense Analytics */}
