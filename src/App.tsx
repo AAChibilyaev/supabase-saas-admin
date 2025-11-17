@@ -2,6 +2,8 @@ import { Admin, Resource, defaultTheme } from 'react-admin'
 import { dataProvider } from './providers/dataProvider'
 import { authProvider } from './providers/authProvider'
 import { Dashboard } from './Dashboard'
+import { TenantProvider } from './contexts/TenantContext'
+import { CustomLayout } from './components/layout/CustomLayout'
 
 // Resource imports
 import { TenantList, TenantEdit, TenantCreate } from './resources/tenants'
@@ -56,99 +58,102 @@ const theme = {
 }
 
 const App = () => (
-  <Admin
-    dataProvider={dataProvider}
-    authProvider={authProvider}
-    theme={theme}
-    dashboard={Dashboard}
-    requireAuth
-  >
-    {/* Core Resources */}
-    <Resource
-      name="tenants"
-      list={TenantList}
-      edit={TenantEdit}
-      create={TenantCreate}
-      icon={Building2}
-      options={{ label: 'Tenants' }}
-    />
-    <Resource
-      name="documents"
-      list={DocumentList}
-      icon={FileText}
-      options={{ label: 'Documents' }}
-    />
-    <Resource
-      name="search_logs"
-      list={SearchLogList}
-      icon={Search}
-      options={{ label: 'Search Logs' }}
-    />
-    <Resource
-      name="tenant_api_keys"
-      list={ApiKeyList}
-      icon={Key}
-      options={{ label: 'API Keys' }}
-    />
+  <TenantProvider>
+    <Admin
+      dataProvider={dataProvider}
+      authProvider={authProvider}
+      theme={theme}
+      dashboard={Dashboard}
+      layout={CustomLayout}
+      requireAuth
+    >
+      {/* Core Resources */}
+      <Resource
+        name="tenants"
+        list={TenantList}
+        edit={TenantEdit}
+        create={TenantCreate}
+        icon={Building2}
+        options={{ label: 'Tenants' }}
+      />
+      <Resource
+        name="documents"
+        list={DocumentList}
+        icon={FileText}
+        options={{ label: 'Documents' }}
+      />
+      <Resource
+        name="search_logs"
+        list={SearchLogList}
+        icon={Search}
+        options={{ label: 'Search Logs' }}
+      />
+      <Resource
+        name="tenant_api_keys"
+        list={ApiKeyList}
+        icon={Key}
+        options={{ label: 'API Keys' }}
+      />
 
-    {/* User Management */}
-    <Resource
-      name="user_tenants"
-      icon={Users}
-      options={{ label: 'User Tenants' }}
-    />
-    <Resource
-      name="profiles"
-      icon={Users}
-      options={{ label: 'Profiles' }}
-    />
+      {/* User Management */}
+      <Resource
+        name="user_tenants"
+        icon={Users}
+        options={{ label: 'User Tenants' }}
+      />
+      <Resource
+        name="profiles"
+        icon={Users}
+        options={{ label: 'Profiles' }}
+      />
 
-    {/* Analytics & Usage */}
-    <Resource
-      name="tenant_usage"
-      icon={BarChart3}
-      options={{ label: 'Tenant Usage' }}
-    />
-    <Resource
-      name="daily_usage_stats"
-      icon={BarChart3}
-      options={{ label: 'Daily Stats' }}
-    />
-    <Resource
-      name="search_analytics"
-      icon={BarChart3}
-      options={{ label: 'Search Analytics' }}
-    />
+      {/* Analytics & Usage */}
+      <Resource
+        name="tenant_usage"
+        icon={BarChart3}
+        options={{ label: 'Tenant Usage' }}
+      />
+      <Resource
+        name="daily_usage_stats"
+        icon={BarChart3}
+        options={{ label: 'Daily Stats' }}
+      />
+      <Resource
+        name="search_analytics"
+        icon={BarChart3}
+        options={{ label: 'Search Analytics' }}
+      />
 
-    {/* Billing */}
-    <Resource
-      name="billing_plans"
-      icon={Wallet}
-      options={{ label: 'Billing Plans' }}
-    />
-    <Resource
-      name="tenant_billing"
-      icon={Wallet}
-      options={{ label: 'Tenant Billing' }}
-    />
+      {/* Billing */}
+      <Resource
+        name="billing_plans"
+        icon={Wallet}
+        options={{ label: 'Billing Plans' }}
+      />
+      <Resource
+        name="tenant_billing"
+        icon={Wallet}
+        options={{ label: 'Tenant Billing' }}
+      />
 
-    {/* CMS & Integrations */}
-    <Resource
-      name="cms_integrations"
-      icon={Globe}
-      options={{ label: 'CMS Integrations' }}
-    />
-    <Resource
-      name="cms_connections"
-      icon={Globe}
-      options={{ label: 'CMS Connections' }}
-    />
-    <Resource
-      name="widgets"
-      icon={Settings}
-      options={{ label: 'Widgets' }}
-    />
-  </Admin>
+      {/* CMS & Integrations */}
+      <Resource
+        name="cms_integrations"
+        icon={Globe}
+        options={{ label: 'CMS Integrations' }}
+      />
+      <Resource
+        name="cms_connections"
+        icon={Globe}
+        options={{ label: 'CMS Connections' }}
+      />
+      <Resource
+        name="widgets"
+        icon={Settings}
+        options={{ label: 'Widgets' }}
+      />
+    </Admin>
+  </TenantProvider>
 )
 
 export default App

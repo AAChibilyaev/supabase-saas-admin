@@ -12,33 +12,43 @@ import {
   TextField,
   DateField,
   NumberField,
-  BooleanInput
+  BooleanInput,
+  usePermissions
 } from 'react-admin'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card'
+import { RoleGate } from '../../components/permissions'
+import type { UserPermissions } from '../../types/permissions'
 
 const validateName = [required()]
 const validateSlug = [required()]
 
-export const TenantEdit = () => (
-  <Edit>
-    <TabbedForm>
-      <FormTab label="General" sx={{ maxWidth: '40em' }}>
-        <TextInput source="name" validate={validateName} fullWidth />
-        <TextInput source="slug" validate={validateSlug} fullWidth />
-        <SelectInput
-          source="plan_type"
-          choices={[
-            { id: 'free', name: 'Free' },
-            { id: 'starter', name: 'Starter' },
-            { id: 'pro', name: 'Pro' },
-            { id: 'enterprise', name: 'Enterprise' }
-          ]}
-          fullWidth
-        />
-        <TextInput source="custom_domain" fullWidth />
-        <DateInput source="billing_cycle_start" />
-        <DateInput source="billing_cycle_end" />
-      </FormTab>
+export const TenantEdit = () => {
+  const { permissions } = usePermissions<UserPermissions>()
+
+  return (
+    <Edit>
+      <TabbedForm>
+        <FormTab label="General" sx={{ maxWidth: '40em' }}>
+          <TextInput source="name" validate={validateName} fullWidth />
+          <TextInput source="slug" validate={validateSlug} fullWidth />
+          <RoleGate minRole="admin">
+            <SelectInput
+              source="plan_type"
+              choices={[
+                { id: 'free', name: 'Free' },
+                { id: 'starter', name: 'Starter' },
+                { id: 'pro', name: 'Pro' },
+                { id: 'enterprise', name: 'Enterprise' }
+              ]}
+              fullWidth
+            />
+          </RoleGate>
+          <TextInput source="custom_domain" fullWidth />
+          <RoleGate minRole="admin">
+            <DateInput source="billing_cycle_start" />
+            <DateInput source="billing_cycle_end" />
+          </RoleGate>
+        </FormTab>
 
       <FormTab label="Branding">
         <TextInput source="branding_logo_url" label="Logo URL" fullWidth />
@@ -100,4 +110,5 @@ export const TenantEdit = () => (
       </FormTab>
     </TabbedForm>
   </Edit>
-)
+  )
+}

@@ -9,33 +9,22 @@ import {
   ShowButton,
   FilterButton,
   CreateButton,
-  ExportButton,
   TopToolbar,
   TextInput,
   SelectInput,
-  usePermissions,
-  BulkDeleteButton,
-  BulkUpdateButton
+  usePermissions
 } from 'react-admin'
 import { Badge } from '../../components/ui/badge'
 import { PermissionGate } from '../../components/permissions'
-import type { UserPermissions } from '../../types/permissions'
+import { UserPermissions } from '../../types/permissions'
 import { useRealtimeSubscription } from '../../hooks/useRealtimeSubscription'
-import { DateRangeFilter } from '../../components/filters/DateRangeFilter'
-import { FilterPresets } from '../../components/filters/FilterPresets'
-import {
-  createExporter,
-  formatDateForExport
-} from '../../utils/exporter'
 
 const TenantListActions = () => {
   const { permissions } = usePermissions<UserPermissions>()
 
   return (
     <TopToolbar>
-      <FilterPresets resource="tenants" />
       <FilterButton />
-      <ExportButton />
       <PermissionGate resource="tenants" action="create">
         <CreateButton />
       </PermissionGate>
@@ -45,9 +34,6 @@ const TenantListActions = () => {
 
 const tenantFilters = [
   <TextInput key="search" label="Search" source="q" alwaysOn />,
-  <TextInput key="name" label="Name" source="name" />,
-  <TextInput key="slug" label="Slug" source="slug" />,
-  <TextInput key="domain" label="Domain" source="custom_domain" />,
   <SelectInput
     key="plan"
     source="plan_type"
@@ -58,8 +44,7 @@ const tenantFilters = [
       { id: 'pro', name: 'Pro' },
       { id: 'enterprise', name: 'Enterprise' }
     ]}
-  />,
-  <DateRangeFilter key="created_at" source="created_at" label="Created Date" />
+  />
 ]
 
 const PlanField = ({ record }: { record?: any }) => {
@@ -69,46 +54,6 @@ const PlanField = ({ record }: { record?: any }) => {
                   record.plan_type === 'enterprise' ? 'default' : 'outline'
 
   return <Badge variant={variant}>{record.plan_type}</Badge>
-}
-
-// CSV Exporter configuration
-const tenantExporter = createExporter('tenants', {
-  'ID': 'id',
-  'Name': 'name',
-  'Slug': 'slug',
-  'Plan Type': 'plan_type',
-  'Custom Domain': 'custom_domain',
-  'Max Documents': 'max_documents',
-  'Max API Calls': 'max_api_calls_per_month',
-  'Created At': (record: any) => formatDateForExport(record.created_at),
-  'Billing Cycle End': (record: any) => formatDateForExport(record.billing_cycle_end),
-})
-
-// Bulk action buttons
-const TenantBulkActionButtons = () => {
-  const { permissions } = usePermissions<UserPermissions>()
-
-  if (!permissions?.canAccess('tenants', 'edit')) {
-    return false
-  }
-
-  return (
-    <>
-      <BulkUpdateButton
-        data={{ plan_type: 'free' }}
-        label="Set to Free Plan"
-      />
-      <BulkUpdateButton
-        data={{ plan_type: 'pro' }}
-        label="Set to Pro Plan"
-      />
-      <BulkDeleteButton
-        mutationMode="pessimistic"
-        confirmTitle="Delete Tenants"
-        confirmContent="Are you sure you want to delete these tenants? This action cannot be undone."
-      />
-    </>
-  )
 }
 
 export const TenantList = () => {
@@ -124,19 +69,14 @@ export const TenantList = () => {
     <List
       filters={tenantFilters}
       actions={<TenantListActions />}
-      exporter={tenantExporter}
       perPage={25}
       sort={{ field: 'created_at', order: 'DESC' }}
     >
-      <Datagrid
-        rowClick="show"
-        bulkActionButtons={<TenantBulkActionButtons />}
-      >
+      <Datagrid rowClick="show" bulkActionButtons={false}>
         <TextField source="name" label="Tenant Name" />
         <TextField source="slug" label="Slug" />
-        <PlanField label="Plan" />
+        <PlanField source="plan_type" label="Plan" />
         <TextField source="custom_domain" label="Domain" />
-        <NumberField source="max_documents" label="Max Docs" />
         <DateField source="created_at" label="Created" showTime />
         <DateField source="billing_cycle_end" label="Billing Cycle End" />
         {permissions?.canAccess('tenants', 'edit') && <EditButton />}

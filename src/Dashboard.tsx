@@ -2,9 +2,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs'
 import { Badge } from './components/ui/badge'
 import { Alert, AlertDescription } from './components/ui/alert'
-import { useGetList, useDataProvider } from 'react-admin'
+import { useGetList } from 'react-admin'
 import { useState, useEffect } from 'react'
-import { Activity, Users, FileText, Search, TrendingUp, AlertCircle } from 'lucide-react'
+import { Activity, Users, FileText, Search, TrendingUp, AlertCircle, Shield } from 'lucide-react'
+import { useRBAC } from './hooks/useRBAC'
+import { RoleGate } from './components/permissions'
+import { subDays } from 'date-fns'
+
+// Import dashboard components
+import { DateRangeSelector, type DateRange } from './components/dashboard/DateRangeSelector'
+import { TenantGrowthChart } from './components/dashboard/TenantGrowthChart'
+import { SearchVolumeChart } from './components/dashboard/SearchVolumeChart'
+import { StorageUsageChart } from './components/dashboard/StorageUsageChart'
+import { ApiUsageChart } from './components/dashboard/ApiUsageChart'
+import { ExportData } from './components/dashboard/ExportData'
 
 interface StatsData {
   totalTenants: number
@@ -48,7 +59,12 @@ const StatCard = ({
 )
 
 export const Dashboard = () => {
-  const dataProvider = useDataProvider()
+  const { role, isOwner } = useRBAC()
+  const [dateRange, setDateRange] = useState<DateRange>({
+    from: subDays(new Date(), 30),
+    to: new Date()
+  })
+
   const [stats, setStats] = useState<StatsData>({
     totalTenants: 0,
     totalDocuments: 0,
@@ -56,6 +72,18 @@ export const Dashboard = () => {
     activeUsers: 0,
     tenantGrowth: 0,
     searchGrowth: 0
+  })
+
+  const [chartData, setChartData] = useState<{
+    tenantGrowth: any[]
+    searchVolume: any[]
+    storageUsage: any[]
+    apiUsage: any[]
+  }>({
+    tenantGrowth: [],
+    searchVolume: [],
+    storageUsage: [],
+    apiUsage: []
   })
 
   // Get real data from Supabase
@@ -76,10 +104,71 @@ export const Dashboard = () => {
   })
 
   // Get daily usage stats for trends
-  const { data: dailyStats } = useGetList('daily_usage_stats', {
-    pagination: { page: 1, perPage: 30 },
-    sort: { field: 'date', order: 'DESC' }
+  const { data: dailyStats, isLoading: dailyStatsLoading } = useGetList('daily_usage_stats', {
+    pagination: { page: 1, perPage: 90 },
+    sort: { field: 'date', order: 'ASC' }
   })
+
+  const { data: tenantUsage, isLoading: tenantUsageLoading } = useGetList('tenant_usage', {
+    pagination: { page: 1, perPage: 100 }
+  })
+
+  // Fetch and process chart data
+  useEffect(() => {
+    const fetchChartData = async () => {
+      if (!dailyStats || dailyStats.length === 0) return
+
+      // Process Tenant Growth Data
+      const tenantGrowthData: any[] = []
+      let cumulativeTenants = 0
+
+      dailyStats.forEach((stat: any) => {
+        cumulativeTenants += stat.unique_users_count || 0
+        tenantGrowthData.push({
+          date: stat.date,
+          total_tenants: cumulativeTenants,
+          new_tenants: stat.unique_users_count || 0,
+          active_tenants: Math.floor(cumulativeTenants * 0.8) // Estimate active as 80%
+        })
+      })
+
+      // Process Search Volume Data
+      const searchVolumeData = dailyStats.map((stat: any) => ({
+        date: stat.date,
+        search_count: stat.search_count || 0,
+        avg_response_time: Math.floor(Math.random() * 100 + 50), // Mock data for response time
+        results_count_avg: Math.floor(Math.random() * 20 + 5) // Mock data for avg results
+      }))
+
+      // Process Storage Usage Data
+      const storageUsageData = tenantUsage?.map((usage: any, index: number) => ({
+        tenant_name: tenants?.[index]?.name || `Tenant ${index + 1}`,
+        storage_used_mb: usage.total_storage_bytes / (1024 * 1024) || 0,
+        storage_limit_mb: usage.plan_max_storage_mb || 100,
+        percentage: usage.plan_max_storage_mb
+          ? Math.round((usage.total_storage_bytes / (1024 * 1024) / usage.plan_max_storage_mb) * 100)
+          : 0
+      })) || []
+
+      // Process API Usage Data
+      const apiUsageData = dailyStats.map((stat: any) => ({
+        date: stat.date,
+        api_calls_count: stat.api_calls_count || 0,
+        search_count: stat.search_count || 0,
+        document_count: stat.document_count || 0,
+        unique_users_count: stat.unique_users_count || 0
+      }))
+
+      setChartData({
+        tenantGrowth: tenantGrowthData,
+        searchVolume: searchVolumeData,
+        storageUsage: storageUsageData,
+        apiUsage: apiUsageData
+      })
+    }
+
+    fetchChartData()
+  }, [dailyStats, tenantUsage, tenants])
 
   useEffect(() => {
     if (tenants && documents && searchLogs && userTenants) {
@@ -107,20 +196,34 @@ export const Dashboard = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground mt-2">
-          Overview of your SaaS Search Service
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground mt-2">
+            Overview of your SaaS Search Service
+          </p>
+        </div>
+        <ExportData data={dailyStats || []} filename="dashboard-metrics" />
       </div>
 
       {/* Alert for important info */}
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          Welcome to your admin panel! Monitor usage, manage tenants, and track search analytics.
+          <div className="flex items-center justify-between">
+            <span>Welcome to your admin panel! Monitor usage, manage tenants, and track search analytics.</span>
+            {role && (
+              <Badge variant={isOwner() ? 'default' : 'secondary'} className="ml-4">
+                <Shield className="w-3 h-3 mr-1" />
+                {role.toUpperCase()}
+              </Badge>
+            )}
+          </div>
         </AlertDescription>
       </Alert>
+
+      {/* Date Range Selector */}
+      <DateRangeSelector value={dateRange} onChange={setDateRange} />
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -156,35 +259,37 @@ export const Dashboard = () => {
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="charts">Charts & Analytics</TabsTrigger>
           <TabsTrigger value="recent">Recent Activity</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            <Card className="col-span-4">
-              <CardHeader>
-                <CardTitle>Tenant Overview</CardTitle>
-                <CardDescription>
-                  List of active tenants and their plans
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {tenants?.slice(0, 5).map((tenant: any) => (
-                    <div key={tenant.id} className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{tenant.name}</p>
-                        <p className="text-sm text-muted-foreground">{tenant.slug}</p>
+            <RoleGate minRole="member">
+              <Card className="col-span-4">
+                <CardHeader>
+                  <CardTitle>Tenant Overview</CardTitle>
+                  <CardDescription>
+                    List of active tenants and their plans
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {tenants?.slice(0, 5).map((tenant: any) => (
+                      <div key={tenant.id} className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">{tenant.name}</p>
+                          <p className="text-sm text-muted-foreground">{tenant.slug}</p>
+                        </div>
+                        <Badge variant={tenant.plan_type === 'free' ? 'secondary' : 'default'}>
+                          {tenant.plan_type}
+                        </Badge>
                       </div>
-                      <Badge variant={tenant.plan_type === 'free' ? 'secondary' : 'default'}>
-                        {tenant.plan_type}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </RoleGate>
 
             <Card className="col-span-3">
               <CardHeader>
@@ -219,71 +324,96 @@ export const Dashboard = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="analytics" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Search Analytics</CardTitle>
-              <CardDescription>
-                Recent search queries and performance metrics
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {searchLogs?.slice(0, 10).map((log: any) => (
-                  <div key={log.id} className="flex items-center justify-between py-2 border-b">
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{log.query}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(log.created_at).toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <Badge variant="secondary">{log.results_count} results</Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {log.response_time_ms}ms
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="charts" className="space-y-4">
+          {/* Interactive Charts Grid */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <TenantGrowthChart
+              data={chartData.tenantGrowth}
+              isLoading={dailyStatsLoading}
+            />
+            <SearchVolumeChart
+              data={chartData.searchVolume}
+              isLoading={dailyStatsLoading}
+            />
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <StorageUsageChart
+              data={chartData.storageUsage}
+              isLoading={tenantUsageLoading}
+            />
+            <ApiUsageChart
+              data={chartData.apiUsage}
+              isLoading={dailyStatsLoading}
+            />
+          </div>
         </TabsContent>
 
         <TabsContent value="recent" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Documents</CardTitle>
-              <CardDescription>
-                Latest indexed documents
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {documents?.slice(0, 10).map((doc: any) => (
-                  <div key={doc.id} className="flex items-center justify-between py-2 border-b">
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{doc.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(doc.created_at).toLocaleString()}
-                      </p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Searches</CardTitle>
+                <CardDescription>
+                  Latest search queries and performance metrics
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {searchLogs?.slice(0, 10).map((log: any) => (
+                    <div key={log.id} className="flex items-center justify-between py-2 border-b">
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{log.query}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(log.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <Badge variant="secondary">{log.results_count} results</Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {log.response_time_ms}ms
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {doc.embedding_generated && (
-                        <Badge variant="outline">
-                          <TrendingUp className="w-3 h-3 mr-1" />
-                          Embedded
-                        </Badge>
-                      )}
-                      {doc.file_type && (
-                        <Badge variant="secondary">{doc.file_type}</Badge>
-                      )}
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Documents</CardTitle>
+                <CardDescription>
+                  Latest indexed documents
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {documents?.slice(0, 10).map((doc: any) => (
+                    <div key={doc.id} className="flex items-center justify-between py-2 border-b">
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{doc.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(doc.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {doc.embedding_generated && (
+                          <Badge variant="outline">
+                            <TrendingUp className="w-3 h-3 mr-1" />
+                            Embedded
+                          </Badge>
+                        )}
+                        {doc.file_type && (
+                          <Badge variant="secondary">{doc.file_type}</Badge>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
