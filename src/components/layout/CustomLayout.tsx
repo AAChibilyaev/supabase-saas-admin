@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { TenantSwitcher } from '../TenantSwitcher'
 import { CustomMenu } from './CustomMenu'
 import { MobileMenu } from './MobileMenu'
-import { ThemeToggle } from '../ui/theme-toggle'
+import { ThemeToggle } from './ThemeToggle'
 
 const CustomAppBar = () => (
   <AppBar className="mobile:px-2">

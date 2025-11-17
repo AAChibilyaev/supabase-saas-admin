@@ -110,16 +110,19 @@ export interface EmailPreferences {
 }
 
 /**
- * Send email with retry logic and tracking
+ * Base email sending function with retry logic and tracking
+ * This is the core function that all other email functions use
  */
-async function sendEmailWithRetry(
-  to: string,
-  subject: string,
-  html: string,
-  from: string,
-  type: EmailType,
+export async function sendEmail(options: {
+  to: string
+  subject: string
+  html: string
+  from?: string
+  type: EmailType
   metadata?: Record<string, unknown>
-): Promise<{ id: string; status: EmailStatus }> {
+}): Promise<{ id: string; status: EmailStatus }> {
+  const { to, subject, html, from = EMAIL_CONFIG.from, type, metadata } = options
+
   let lastError: Error | null = null
 
   for (let attempt = 0; attempt < EMAIL_CONFIG.maxRetries; attempt++) {
@@ -170,6 +173,20 @@ async function sendEmailWithRetry(
   })
 
   throw new Error(`Failed to send email after ${EMAIL_CONFIG.maxRetries} attempts: ${lastError?.message}`)
+}
+
+/**
+ * Internal wrapper for backward compatibility
+ */
+async function sendEmailWithRetry(
+  to: string,
+  subject: string,
+  html: string,
+  from: string,
+  type: EmailType,
+  metadata?: Record<string, unknown>
+): Promise<{ id: string; status: EmailStatus }> {
+  return sendEmail({ to, subject, html, from, type, metadata })
 }
 
 /**
@@ -881,4 +898,31 @@ function getEmailFooter(): string {
       <p><a href="${window.location.origin}/settings/email-preferences">Manage email preferences</a></p>
     </div>
   `
+}
+
+// Convenience aliases for common email types
+// These make the API more intuitive for developers
+
+/**
+ * Send a team invitation email
+ * Alias for sendInvitationEmail for better API discoverability
+ */
+export async function sendTeamInvitation(data: InvitationEmailData): Promise<void> {
+  return sendInvitationEmail(data)
+}
+
+/**
+ * Send a usage alert notification
+ * Alias for sendUsageAlertEmail for better API discoverability
+ */
+export async function sendUsageAlert(data: UsageAlertEmailData): Promise<void> {
+  return sendUsageAlertEmail(data)
+}
+
+/**
+ * Send a billing notification
+ * Alias for sendBillingEmail for better API discoverability
+ */
+export async function sendBillingNotification(data: BillingEmailData): Promise<void> {
+  return sendBillingEmail(data)
 }
