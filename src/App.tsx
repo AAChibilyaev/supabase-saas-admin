@@ -13,6 +13,7 @@ import { InvitationList, InvitationCreate } from './resources/team-invitations'
 import { TeamMemberList } from './resources/team-members'
 import { ActivityFeed } from './resources/activity-logs'
 import { SecurityList } from './resources/security'
+import { IntegrationList, IntegrationCreate, IntegrationEdit } from './resources/cms-integrations'
 import {
   ApiKeyList as TypesenseApiKeyList,
   ApiKeyCreate as TypesenseApiKeyCreate,
@@ -69,7 +70,9 @@ import {
   Mail,
   UserPlus,
   ListTree,
-  ShieldCheck
+  ShieldCheck,
+  Plug,
+  Webhook
 } from 'lucide-react'
 
 // Custom light theme based on shadcn
@@ -393,14 +396,27 @@ const App = () => (
 
       {/* CMS & Integrations */}
       <Resource
-        name="cms_integrations"
-        icon={Globe}
+        name="cms_connections"
+        list={IntegrationList}
+        create={IntegrationCreate}
+        edit={IntegrationEdit}
+        icon={Plug}
         options={{ label: 'CMS Integrations' }}
       />
       <Resource
-        name="cms_connections"
+        name="cms_integrations"
         icon={Globe}
-        options={{ label: 'CMS Connections' }}
+        options={{ label: 'Legacy CMS Integrations' }}
+      />
+      <Resource
+        name="cms_sync_logs"
+        icon={Activity}
+        options={{ label: 'CMS Sync Logs' }}
+      />
+      <Resource
+        name="cms_webhook_events"
+        icon={Webhook}
+        options={{ label: 'CMS Webhook Events' }}
       />
       <Resource
         name="widgets"

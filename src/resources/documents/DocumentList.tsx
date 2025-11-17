@@ -30,11 +30,14 @@ import {
 import { useRealtimeSubscription } from '../../hooks/useRealtimeSubscription'
 import { PermissionGate } from '../../components/permissions'
 import type { UserPermissions } from '../../types/permissions'
+import { EmbeddingStatus } from './EmbeddingStatus'
+import { BatchEmbeddingButton } from './BatchEmbedding'
 
 const DocumentListActions = () => (
   <TopToolbar>
     <FilterPresets resource="documents" />
     <FilterButton />
+    <BatchEmbeddingButton />
     <PermissionGate resource="documents" action="export">
       <ExportButton />
     </PermissionGate>
@@ -166,7 +169,7 @@ export const DocumentList = () => {
         </ReferenceField>
         <TextField source="file_type" label="Type" />
         <FileSizeField label="Size" />
-        <EmbeddingStatusField label="Embedding" />
+        <EmbeddingStatus label="Embedding" />
         <DateField source="created_at" label="Created" showTime />
         {permissions?.canAccess('documents', 'edit') && <EditButton />}
         {permissions?.canAccess('documents', 'delete') && <DeleteButton />}
