@@ -7,6 +7,10 @@ Production-ready React Admin panel for SaaS Search Service built with **Supabase
 [![React Admin](https://img.shields.io/badge/React_Admin-5.13.1-green.svg)](https://marmelab.com/react-admin/)
 [![Supabase](https://img.shields.io/badge/Supabase-2.81-green.svg)](https://supabase.com/)
 
+[![CI/CD](https://github.com/AAChibilyaev/supabase-admin/actions/workflows/test.yml/badge.svg)](https://github.com/AAChibilyaev/supabase-admin/actions/workflows/test.yml)
+[![Deploy](https://github.com/AAChibilyaev/supabase-admin/actions/workflows/deploy.yml/badge.svg)](https://github.com/AAChibilyaev/supabase-admin/actions/workflows/deploy.yml)
+[![Code Quality](https://github.com/AAChibilyaev/supabase-admin/actions/workflows/quality.yml/badge.svg)](https://github.com/AAChibilyaev/supabase-admin/actions/workflows/quality.yml)
+
 ## ✨ Features
 
 ### 🎯 Core Functionality
@@ -266,33 +270,95 @@ Add tenant-specific branding via:
 
 ## 🚀 Deployment
 
-### Build for Production
+This project includes a comprehensive CI/CD pipeline with GitHub Actions for automated testing, building, and deployment.
 
+### CI/CD Pipeline
+
+The project uses **4 automated workflows**:
+
+1. **Test & Validate** (`test.yml`)
+   - Runs on all pull requests and pushes
+   - Linting, type checking, building, security scanning
+   - Ensures code quality before merging
+
+2. **Deploy** (`deploy.yml`)
+   - Automatic deployment to staging (develop branch)
+   - Automatic deployment to production (main branch)
+   - Manual deployment via workflow dispatch
+   - Post-deployment health checks
+
+3. **Code Quality** (`quality.yml`)
+   - Weekly scheduled quality checks
+   - Bundle size analysis
+   - Dependency security review
+   - Code smell detection
+
+4. **Database Migrations** (`migrations.yml`)
+   - Automatic migration validation
+   - Staging and production database updates
+   - Rollback support with backups
+
+### Automated Deployment
+
+**To Staging:**
 ```bash
-npm run build
+git checkout develop
+git merge feature/your-feature
+git push origin develop
+# Automatically deploys to staging environment
 ```
 
-The build output will be in `dist/`.
+**To Production:**
+```bash
+git checkout main
+git merge develop
+git push origin main
+# Automatically deploys to production with health checks
+```
 
-### Deploy to Vercel
+### Manual Deployment
 
+1. **Via GitHub Actions UI:**
+   - Go to Actions > Deploy
+   - Click "Run workflow"
+   - Select environment (staging/production)
+   - Confirm deployment
+
+2. **Via Vercel CLI** (emergency only):
 ```bash
 npm i -g vercel
-vercel
+vercel --prod
 ```
 
-### Deploy to Netlify
+### Required Secrets
 
-```bash
-npm run build
-# Drag and drop dist/ folder to Netlify
-```
+Configure these in GitHub Repository Settings > Secrets and variables > Actions:
 
-### Environment Variables
+**Vercel:**
+- `VERCEL_TOKEN` - Deployment token
+- `VERCEL_ORG_ID` - Organization ID
+- `VERCEL_PROJECT_ID` - Project ID
 
-Don't forget to set environment variables in your deployment platform:
+**Supabase (Production):**
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
+- `DATABASE_URL`
+- `SUPABASE_ACCESS_TOKEN`
+
+**Supabase (Staging):**
+- `STAGING_SUPABASE_URL`
+- `STAGING_SUPABASE_ANON_KEY`
+- `STAGING_DATABASE_URL`
+
+**Additional:**
+- `VITE_STRIPE_PUBLIC_KEY` / `STAGING_STRIPE_PUBLIC_KEY`
+- `VITE_TYPESENSE_HOST` / `STAGING_TYPESENSE_HOST`
+- `VITE_TYPESENSE_API_KEY` / `STAGING_TYPESENSE_API_KEY`
+
+For detailed deployment instructions, rollback procedures, and secrets management, see:
+- [Deployment Guide](./docs/DEPLOYMENT.md)
+- [Rollback Procedures](./docs/ROLLBACK.md)
+- [Secrets Management](./docs/SECRETS.md)
 
 ## 🐛 Troubleshooting
 

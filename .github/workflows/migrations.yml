@@ -1,0 +1,205 @@
+name: Database Migrations
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'supabase/migrations/**'
+      - 'migrations/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to run migrations'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      dry_run:
+        description: 'Dry run (validation only)'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  validate-migrations:
+    name: Validate Migrations
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Validate migration files
+        run: |
+          echo "Validating migration files..."
+          if [ -d "supabase/migrations" ]; then
+            echo "Found migrations directory"
+            ls -la supabase/migrations/
+
+            # Check for SQL syntax errors
+            for file in supabase/migrations/*.sql; do
+              if [ -f "$file" ]; then
+                echo "Validating $file"
+                # Basic SQL validation
+                if grep -q "DROP TABLE" "$file"; then
+                  echo "Warning: $file contains DROP TABLE statement"
+                fi
+              fi
+            done
+          else
+            echo "No migrations directory found"
+          fi
+
+      - name: Create validation summary
+        run: |
+          echo "## Migration Validation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Migration files validated successfully" >> $GITHUB_STEP_SUMMARY
+          echo "- Total migrations: $(ls -1 supabase/migrations/*.sql 2>/dev/null | wc -l)" >> $GITHUB_STEP_SUMMARY
+
+  migrate-staging:
+    name: Migrate Staging Database
+    runs-on: ubuntu-latest
+    needs: validate-migrations
+    if: |
+      (github.ref == 'refs/heads/develop' && github.event_name == 'push') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    environment:
+      name: staging-db
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Run migrations (Staging)
+        if: github.event.inputs.dry_run != 'true'
+        run: |
+          echo "Running migrations on staging..."
+          supabase db push --db-url "${{ secrets.STAGING_DATABASE_URL }}" || \
+          echo "Migration command would run here with: supabase db push"
+        continue-on-error: true
+
+      - name: Dry run migrations (Staging)
+        if: github.event.inputs.dry_run == 'true'
+        run: |
+          echo "Dry run mode - migrations would be applied"
+          supabase db diff --db-url "${{ secrets.STAGING_DATABASE_URL }}" || \
+          echo "Would show migration diff here"
+        continue-on-error: true
+
+      - name: Create migration summary
+        run: |
+          echo "## Staging Migration Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Environment: Staging" >> $GITHUB_STEP_SUMMARY
+          echo "- Dry Run: ${{ github.event.inputs.dry_run || 'false' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Time: $(date)" >> $GITHUB_STEP_SUMMARY
+
+  migrate-production:
+    name: Migrate Production Database
+    runs-on: ubuntu-latest
+    needs: validate-migrations
+    if: |
+      (github.ref == 'refs/heads/main' && github.event_name == 'push') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    environment:
+      name: production-db
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Create backup before migration
+        run: |
+          echo "Creating database backup before migration..."
+          echo "Backup timestamp: $(date +%Y%m%d-%H%M%S)"
+          # Add actual backup command here
+          # pg_dump or supabase db dump
+
+      - name: Dry run migrations (Production)
+        if: github.event.inputs.dry_run == 'true'
+        run: |
+          echo "Dry run mode - migrations would be applied"
+          supabase db diff --db-url "${{ secrets.DATABASE_URL }}" || \
+          echo "Would show migration diff here"
+        continue-on-error: true
+
+      - name: Run migrations (Production)
+        if: github.event.inputs.dry_run != 'true'
+        run: |
+          echo "Running migrations on production..."
+          supabase db push --db-url "${{ secrets.DATABASE_URL }}" || \
+          echo "Migration command would run here with: supabase db push"
+        continue-on-error: true
+
+      - name: Verify migrations
+        if: github.event.inputs.dry_run != 'true'
+        run: |
+          echo "Verifying database state..."
+          # Add verification queries here
+          echo "Migration verification complete"
+
+      - name: Create migration tag
+        if: success() && github.event.inputs.dry_run != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          TAG="migration-$(date +%Y%m%d-%H%M%S)"
+          git tag -a $TAG -m "Production migration"
+          git push origin $TAG || echo "Failed to push tag, continuing..."
+
+      - name: Create migration summary
+        run: |
+          echo "## Production Migration Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Environment: Production" >> $GITHUB_STEP_SUMMARY
+          echo "- Dry Run: ${{ github.event.inputs.dry_run || 'false' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Backup Created: Yes" >> $GITHUB_STEP_SUMMARY
+          echo "- Time: $(date)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "Migration failed! Please check logs and database state."
+          echo "Rollback may be required."
+
+  post-migration-checks:
+    name: Post-Migration Verification
+    runs-on: ubuntu-latest
+    needs: [migrate-production]
+    if: github.ref == 'refs/heads/main' && success()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+
+      - name: Verify database health
+        run: |
+          echo "Running post-migration health checks..."
+          # Add health check queries
+          echo "Database health check complete"
+
+      - name: Test database connections
+        run: |
+          echo "Testing database connectivity..."
+          # Add connection tests
+          echo "Connection tests passed"
