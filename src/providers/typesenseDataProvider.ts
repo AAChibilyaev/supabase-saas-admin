@@ -136,6 +136,26 @@ export const typesenseDataProvider: DataProvider = {
       }
     }
 
+
+    // Conversation Models Management
+    if (resource === 'typesense-conversations') {
+      try {
+        const result = await (typesenseClient as any).conversations.models().retrieve()
+        const models = result.models || []
+
+        return {
+          data: models.map((model: any) => ({
+            ...model,
+            id: model.id || model.model_name
+          })),
+          total: models.length
+        }
+      } catch (error) {
+        console.error('Failed to retrieve conversation models:', error)
+        throw error
+      }
+    }
+
     // NL Models Management
     if (resource === 'typesense-nl-models') {
       try {
@@ -188,6 +208,11 @@ export const typesenseDataProvider: DataProvider = {
   getOne: async (resource, params) => {
     if (!typesenseClient) {
       throw new Error('Typesense client is not initialized')
+    }
+
+    // System Operations
+    if (resource === 'typesense-system') {
+      return typesenseSystemProvider.getOne(params.id as string)
     }
 
     // Aliases Management
@@ -304,6 +329,23 @@ export const typesenseDataProvider: DataProvider = {
             ...result,
             id: result.name
           }
+
+    // Conversation Models Management
+    if (resource === 'typesense-conversations') {
+      try {
+        const result = await (typesenseClient as any).conversations.models(params.id).retrieve()
+        return {
+          data: {
+            ...result,
+            id: result.id || result.model_name
+          }
+        }
+      } catch (error) {
+        console.error('Failed to retrieve conversation model:', error)
+        throw error
+      }
+    }
+
         }
       } catch (error) {
         console.error('Failed to retrieve preset:', error)
@@ -552,6 +594,32 @@ export const typesenseDataProvider: DataProvider = {
             ...result,
             id: result.name
           }
+
+    // Conversation Models Management
+    if (resource === 'typesense-conversations') {
+      try {
+        const { model_name, llm_model, conversation_config, enabled = true } = params.data
+        const result = await (typesenseClient as any)
+          .conversations.models()
+          .create({
+            model_name,
+            llm_model,
+            conversation_config,
+            enabled
+          })
+
+        return {
+          data: {
+            ...result,
+            id: result.id || result.model_name
+          }
+        }
+      } catch (error) {
+        console.error('Failed to create conversation model:', error)
+        throw error
+      }
+    }
+
         }
       } catch (error) {
         console.error('Failed to create preset:', error)
@@ -718,6 +786,7 @@ export const typesenseDataProvider: DataProvider = {
       try {
         const stopwordSetId = params.id.toString()
         const { stopwords, locale } = params.data
+        const { stopwords, locale } = params.data
         const result = await (typesenseClient as any)
           .stopwords()
           .upsert(stopwordSetId, {
@@ -781,6 +850,33 @@ export const typesenseDataProvider: DataProvider = {
         throw error
       }
     }
+
+    // Conversation Models Management
+    if (resource === 'typesense-conversations') {
+      try {
+        const modelId = params.id.toString()
+        const { model_name, llm_model, conversation_config, enabled } = params.data
+        const result = await (typesenseClient as any)
+          .conversations.models(modelId)
+          .update({
+            model_name,
+            llm_model,
+            conversation_config,
+            enabled
+          })
+
+        return {
+          data: {
+            ...result,
+            id: result.id || result.model_name
+          }
+        }
+      } catch (error) {
+        console.error('Failed to update conversation model:', error)
+        throw error
+      }
+    }
+
 
     // Synonym Sets Management
     if (resource === 'typesense-synonyms') {
@@ -1012,6 +1108,29 @@ export const typesenseDataProvider: DataProvider = {
         return { data: { id: params.id } }
       } catch (error) {
         console.error('Failed to delete preset:', error)
+        throw error
+      }
+    }
+
+    // Conversation Models Management
+    if (resource === 'typesense-conversations') {
+      try {
+        await (typesenseClient as any).conversations.models(params.id).delete()
+        return { data: { id: params.id } }
+      } catch (error) {
+        console.error('Failed to delete conversation model:', error)
+        throw error
+      }
+    }
+
+
+    // NL Models Management
+    if (resource === 'typesense-nl-models') {
+      try {
+        await (typesenseClient as any).models(params.id).delete()
+        return { data: { id: params.id } }
+      } catch (error) {
+        console.error('Failed to delete NL model:', error)
         throw error
       }
     }

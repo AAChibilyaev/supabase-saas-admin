@@ -22,6 +22,12 @@ import { SynonymSetList, SynonymSetEdit, SynonymSetCreate } from './resources/ty
 import { StopwordsList, StopwordsEdit, StopwordsCreate } from './resources/typesense-stopwords'
 import { AliasList, AliasEdit, AliasCreate } from './resources/typesense-aliases'
 import { AnalyticsDashboard, AnalyticsRules, AnalyticsEvents } from './resources/typesense-analytics'
+import {
+  SystemDashboard,
+  SystemMetrics,
+  SystemOperations,
+  SystemLogs
+} from './resources/typesense-system'
 
 // Icons from lucide-react
 import {
@@ -39,7 +45,8 @@ import {
   Ban,
   Link2,
   Activity,
-  TrendingUp
+  TrendingUp,
+  Server
 } from 'lucide-react'
 
 // Custom theme based on shadcn
@@ -179,6 +186,35 @@ const App = () => (
         icon={Activity}
         options={{ label: 'Analytics Events' }}
       />
+
+      {/* System Operations & Monitoring */}
+      <Resource
+        name="typesense-system-dashboard"
+        list={SystemDashboard}
+        icon={Server}
+        options={{ label: 'System Dashboard' }}
+      />
+      <Resource
+        name="typesense-system-metrics"
+        list={SystemMetrics}
+        icon={Activity}
+        options={{ label: 'System Metrics' }}
+      />
+      <Resource
+        name="typesense-system-operations"
+        list={SystemOperations}
+        icon={Settings}
+        options={{ label: 'System Operations' }}
+      />
+      <Resource
+        name="typesense-system-logs"
+        list={SystemLogs}
+        icon={FileText}
+        options={{ label: 'System Logs' }}
+      />
+
+      {/* Hidden resource for system operations data */}
+      <Resource name="typesense-system" />
 
       {/* User Management */}
       <Resource
