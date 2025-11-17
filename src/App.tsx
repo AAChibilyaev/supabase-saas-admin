@@ -1,16 +1,14 @@
-import { Admin, Resource, defaultTheme } from 'react-admin'
-import { compositeDataProvider } from './providers/compositeDataProvider'
-import { authProvider } from './providers/authProvider'
+import { Resource, defaultTheme } from 'react-admin'
 import { Dashboard } from './Dashboard'
 import { TenantProvider } from './contexts/TenantContext'
 import { CustomLayout } from './components/layout/CustomLayout'
+import { ThemeSelector } from './components/ThemeSelector'
 
 // Resource imports
 import { TenantList, TenantEdit, TenantCreate } from './resources/tenants'
 import { DocumentList } from './resources/documents'
 import { SearchLogList } from './resources/search-logs'
 import { ApiKeyList } from './resources/api-keys'
-import { UserList, UserEdit, UserCreate } from './resources/users'
 import {
   ApiKeyList as TypesenseApiKeyList,
   ApiKeyCreate as TypesenseApiKeyCreate,
@@ -66,8 +64,8 @@ import {
   Files
 } from 'lucide-react'
 
-// Custom theme based on shadcn
-const theme = {
+// Custom light theme based on shadcn
+const lightTheme = {
   ...defaultTheme,
   palette: {
     mode: 'light' as const,
@@ -98,15 +96,49 @@ const theme = {
   },
 }
 
+// Custom dark theme based on shadcn
+const darkTheme = {
+  ...defaultTheme,
+  palette: {
+    mode: 'dark' as const,
+    primary: {
+      main: 'hsl(210, 40%, 98%)',
+    },
+    secondary: {
+      main: 'hsl(217.2, 32.6%, 17.5%)',
+    },
+    background: {
+      default: 'hsl(222.2, 84%, 4.9%)',
+      paper: 'hsl(222.2, 84%, 4.9%)',
+    },
+    text: {
+      primary: 'hsl(210, 40%, 98%)',
+      secondary: 'hsl(215, 20.2%, 65.1%)',
+    },
+  },
+  shape: {
+    borderRadius: 8,
+  },
+  components: {
+    ...defaultTheme.components,
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none' as const,
+          fontWeight: 500,
+        },
+      },
+    },
+  },
+}
+
 const App = () => (
   <TenantProvider>
-    <Admin
-      dataProvider={compositeDataProvider}
-      authProvider={authProvider}
-      theme={theme}
+    <ThemeSelector
       dashboard={Dashboard}
       layout={CustomLayout}
-      requireAuth
+      lightTheme={lightTheme}
+      darkTheme={darkTheme}
     >
       {/* Core Resources */}
       <Resource
@@ -338,7 +370,7 @@ const App = () => (
         icon={Settings}
         options={{ label: 'Widgets' }}
       />
-    </Admin>
+    </ThemeSelector>
   </TenantProvider>
 )
 
