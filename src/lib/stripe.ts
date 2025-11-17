@@ -3,7 +3,7 @@
  * Issue #28: Stripe Billing & Subscription Management
  */
 
-import { loadStripe, Stripe } from '@stripe/stripe-js'
+import { loadStripe, type Stripe } from '@stripe/stripe-js'
 
 // Stripe publishable key from environment
 const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY

@@ -72,7 +72,7 @@ export const useLongPress = (
   callback: () => void,
   duration: number = 500
 ) => {
-  const timeout = useRef<NodeJS.Timeout>()
+  const timeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const start = useCallback(() => {
     timeout.current = setTimeout(callback, duration)

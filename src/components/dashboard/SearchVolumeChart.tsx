@@ -5,7 +5,7 @@ import { Search } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../ui/button'
 
-interface SearchVolumeData {
+export interface SearchVolumeData {
   date: string
   search_count: number
   avg_response_time: number

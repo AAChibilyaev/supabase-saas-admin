@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useDataProvider, useNotify, useRefresh } from 'react-admin'
+import { useNotify, useRefresh } from 'react-admin'
 import { supabaseClient } from '../providers/supabaseClient'
 import { RealtimeChannel } from '@supabase/supabase-js'
 

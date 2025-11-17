@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/react"
+import type { Transaction } from "@sentry/types"
 
 /**
  * User information for Sentry context
@@ -288,11 +289,9 @@ export function captureMessage(
  * transaction.finish()
  * ```
  */
-export function startTransaction(name: string, op: string) {
-  return Sentry.startTransaction({
-    name,
-    op,
-  })
+export function startTransaction(name: string, op: string): Transaction | undefined {
+  const anySentry = Sentry as unknown as { startTransaction?: (ctx: { name: string; op: string }) => Transaction }
+  return anySentry.startTransaction?.({ name, op })
 }
 
 /**

@@ -7,21 +7,7 @@ import { Button } from './ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { useToast } from '../hooks/use-toast'
 import { supabase } from '../lib/supabase'
-import { EmailType } from '../services/email'
 import type { Database } from '../types/database.types'
-
-interface EmailTemplate {
-  id: string
-  name: string
-  type: EmailType
-  subject: string
-  html_template: string
-  variables: string[]
-  is_active: boolean
-  version: number
-  created_at: string
-  updated_at: string
-}
 
 type EmailTemplateRow = Database['public']['Tables']['email_templates']['Row']
 
@@ -38,7 +24,7 @@ export function EmailTemplateEditor() {
     try {
       setLoading(true)
       const { data, error } = await supabase
-        .from('email_templates')
+        .from<EmailTemplateRow>('email_templates')
         .select('*')
         .order('type', { ascending: true })
 

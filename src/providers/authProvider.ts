@@ -39,7 +39,7 @@ export const authProvider: AuthProvider = supabaseAuthProvider(supabaseClient, {
     }
 
     const role = (userTenant.role || 'readonly') as UserRole
-    const tenantId = userTenant.tenant_id
+    const tenantId = userTenant.tenant_id ?? ''
 
     return createUserPermissions(role, tenantId, userData.user.id)
   },

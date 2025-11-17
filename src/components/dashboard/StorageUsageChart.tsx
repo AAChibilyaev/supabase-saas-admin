@@ -3,7 +3,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recha
 import { HardDrive } from 'lucide-react'
 import { Progress } from '../ui/progress'
 
-interface StorageUsageData {
+export interface StorageUsageData {
   tenant_name: string
   storage_used_mb: number
   storage_limit_mb: number

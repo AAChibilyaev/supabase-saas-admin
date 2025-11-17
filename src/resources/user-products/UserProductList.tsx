@@ -7,6 +7,7 @@ import {
   ChipField,
   ShowButton,
   FilterButton,
+  ExportButton,
   TopToolbar,
   TextInput,
   SelectInput,
@@ -18,17 +19,27 @@ import { PermissionGate } from '@/components/permissions'
 import type { UserPermissions } from '@/types/permissions'
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription'
 import { useTenantContext } from '@/contexts/TenantContext'
+import { DateRangeFilter } from '@/components/filters/DateRangeFilter'
+import { FilterPresets } from '@/components/filters/FilterPresets'
+import {
+  createExporter,
+  formatDateForExport,
+} from '@/utils/exporter'
 
 const UserProductListActions = () => {
   return (
     <TopToolbar>
+      <FilterPresets resource="user_products" />
       <FilterButton />
+      <ExportButton />
     </TopToolbar>
   )
 }
 
 const userProductFilters = [
   <TextInput key="search" label="Search" source="q" alwaysOn />,
+  <TextInput key="stripe_product_id" label="Product ID" source="stripe_product_id" />,
+  <TextInput key="stripe_price_id" label="Price ID" source="stripe_price_id" />,
   <SelectInput
     key="type"
     source="type"
@@ -47,7 +58,22 @@ const userProductFilters = [
       { id: false, name: 'Inactive' },
     ]}
   />,
+  <DateRangeFilter key="created_at" source="created_at" label="Date Range" />,
 ]
+
+// CSV Exporter configuration
+const userProductExporter = createExporter('user_products', {
+  'ID': 'id',
+  'Stripe Product ID': 'stripe_product_id',
+  'Stripe Price ID': 'stripe_price_id',
+  'Type': 'type',
+  'Status': (record: any) => record.is_active ? 'Active' : 'Inactive',
+  'Stripe Customer ID': 'stripe_customer_id',
+  'User ID': 'user_id',
+  'Tenant ID': 'tenant_id',
+  'Created At': (record: any) => formatDateForExport(record.created_at),
+  'Updated At': (record: any) => formatDateForExport(record.updated_at),
+})
 
 const StatusBadge = ({ record }: { record?: any }) => {
   if (!record) return null
@@ -80,6 +106,7 @@ export const UserProductList = () => {
     <List
       filters={userProductFilters}
       actions={<UserProductListActions />}
+      exporter={userProductExporter}
       perPage={25}
       sort={{ field: 'created_at', order: 'DESC' }}
     >

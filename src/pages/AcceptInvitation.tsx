@@ -30,7 +30,7 @@ interface Invitation {
 }
 
 export const AcceptInvitation = () => {
-  const { token } = useParams<{ token: string }>()
+  const { token } = useParams<{ token?: string }>()
   const navigate = useNavigate()
   const [invitation, setInvitation] = useState<Invitation | null>(null)
   const [loading, setLoading] = useState(true)
@@ -39,12 +39,18 @@ export const AcceptInvitation = () => {
   const [success, setSuccess] = useState(false)
 
   const loadInvitation = useCallback(async () => {
+    if (!token) {
+      setError('Missing invitation token')
+      setLoading(false)
+      return
+    }
+
     try {
       setLoading(true)
       setError(null)
 
       const { data, error: fetchError } = await supabaseClient
-        .from('team_invitations')
+        .from<Invitation>('team_invitations')
         .select('*, tenants(*)')
         .eq('token', token)
         .eq('status', 'pending')
@@ -77,7 +83,7 @@ export const AcceptInvitation = () => {
   }, [loadInvitation])
 
   const acceptInvitation = async () => {
-    if (!invitation) return
+    if (!invitation || !token) return
 
     try {
       setProcessing(true)
@@ -102,13 +108,13 @@ export const AcceptInvitation = () => {
       }
 
       // Call the accept_invitation function
-      const { data: { success, error: acceptError } } = await supabaseClient.rpc(
-        'accept_invitation',
+      const { data: acceptResult, error: acceptError } = await supabaseClient.rpc(
+        'accept_invitation' as unknown as never,
         {
-          p_token: token as string,
-          p_user_id: user.id as string,
+          p_token: token,
+          p_user_id: user.id,
         }
-      ) as { data: { success: boolean; error: string | undefined } }
+      ) as { data: { success: boolean; error?: string } | null; error: unknown }
 
       if (acceptError) {
         setError(acceptError instanceof Error ? acceptError.message : 'Failed to accept invitation')
@@ -116,8 +122,8 @@ export const AcceptInvitation = () => {
         return
       }
 
-      if (!data?.success || !(data as unknown as { success: boolean }).success) {
-        setError(data?.error ? (data.error as unknown as string) : 'Failed to accept invitation')
+      if (!acceptResult?.success) {
+        setError(acceptResult?.error ?? 'Failed to accept invitation')
         setProcessing(false)
         return
       }

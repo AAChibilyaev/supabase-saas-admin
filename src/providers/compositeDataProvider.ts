@@ -8,7 +8,6 @@ import {
   type TypesenseSearchParams,
   type TypesenseSearchResult,
 } from './typesenseClient'
-import type { CollectionListResponse } from '../types/typesense'
 
 /**
  * Configuration for Typesense-enabled resources
@@ -193,7 +192,7 @@ const searchWithTypesense = async (
     const total = result.found || 0
 
     return {
-      data,
+      data: data as any,
       total,
     }
   } catch (error) {
@@ -236,7 +235,7 @@ export const createCompositeDataProvider = (): DataProvider => {
 
         // If Typesense search succeeded, return the result
         if (typesenseResult) {
-          return typesenseResult
+          return typesenseResult as unknown as GetListResult<any>
         }
       }
 
@@ -342,7 +341,7 @@ export const checkTypesenseAvailability = async (): Promise<{
     const collections = await typesenseClient.collections().retrieve()
     return {
       available: true,
-      collections: collections.map((c: CollectionListResponse['collections'][number]) => c.name ?? ''),
+      collections: (collections as any[]).map((c: any) => c.name ?? ''),
     }
   } catch (error: unknown) {
     return {

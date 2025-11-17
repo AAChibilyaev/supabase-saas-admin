@@ -44,7 +44,7 @@ Sentry.init({
   debug: import.meta.env.DEV,
 
   // Before send hook to filter sensitive data
-  beforeSend(event, hint) {
+  beforeSend(event, _hint) {
     // Don't send events if DSN is not configured
     if (!import.meta.env.VITE_SENTRY_DSN) {
       return null

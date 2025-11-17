@@ -1,5 +1,5 @@
 import { useState, useLayoutEffect } from 'react'
-import { useRegisterSW } from 'virtual:pwa-register/react' // @ts-expect-error - no types
+import { useRegisterSW } from 'virtual:pwa-register/react'
 import { RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -14,7 +14,7 @@ export const UpdateNotification = () => {
   const [showUpdatePrompt, setShowUpdatePrompt] = useState(false)
 
   const {
-    offlineReady: [offlineReady],
+    offlineReady: [offlineReady ],
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({

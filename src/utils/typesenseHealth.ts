@@ -26,7 +26,7 @@ export interface TypesenseClusterStats {
  * Check the health of a single Typesense node
  */
 const checkNodeHealth = async (
-  node: ConfigurationOptions['nodes'][0]
+  node: ConfigurationOptions['nodes'][0] & { protocol: string; host: string; port: number }
 ): Promise<NodeHealthStatus> => {
   const url = `${node.protocol}://${node.host}:${node.port}`
   const startTime = Date.now()
@@ -88,7 +88,9 @@ export const checkTypesenseHealth = async (): Promise<TypesenseHealthStatus> => 
 
     // Check health of all nodes in parallel
     const nodeHealthChecks = await Promise.all(
-      config.nodes.map((node) => checkNodeHealth(node))
+      config.nodes.map((node: ConfigurationOptions['nodes'][0]) =>
+        checkNodeHealth(node as ConfigurationOptions['nodes'][0] & { protocol: string; host: string; port: number })
+      )
     )
 
     // Cluster is healthy if at least one node is healthy
@@ -129,7 +131,7 @@ export const getTypesenseClusterStats = async (): Promise<TypesenseClusterStats 
         // Get debug/stats endpoint (may not be available in all deployments)
         let debugStats: Record<string, unknown> | null = null
         try {
-          debugStats = await typesenseClient!.operations.perform('get', '/debug')
+          debugStats = await typesenseClient!.operations.perform('get', '/debug') as Record<string, unknown>
         } catch (error) {
           console.debug('Debug endpoint not available:', error)
         }

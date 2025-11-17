@@ -3,7 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { format } from 'date-fns'
 import { Activity, TrendingUp } from 'lucide-react'
 
-interface ApiUsageData {
+export interface ApiUsageData {
   date: string
   api_calls_count: number
   search_count: number

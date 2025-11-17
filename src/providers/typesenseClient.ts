@@ -1,4 +1,4 @@
-import Typesense from 'typesense'
+import Typesense, { Client } from 'typesense'
 import type { ConfigurationOptions } from 'typesense/lib/Typesense/Configuration'
 
 // Validate required environment variables
@@ -37,7 +37,7 @@ const parseAdditionalNodes = (): Array<{ host: string; port: number; protocol: '
 }
 
 // Create Typesense client configuration
-const createTypesenseClient = (): Typesense.Client | null => {
+const createTypesenseClient = (): Client | null => {
   if (!validateEnvVars()) {
     return null
   }

@@ -8,14 +8,15 @@ import { Activity, Users, FileText, Search, TrendingUp, AlertCircle, Shield } fr
 import { useRBAC } from './hooks/useRBAC'
 import { RoleGate } from './components/permissions'
 import { subDays } from 'date-fns'
-import type { TenantUsageDashboard } from './types/database.types'
+import type { Database } from './types/database.types'
+import type { TenantGrowthData } from './services/analytics'
 
 // Import dashboard components
 import { DateRangeSelector, type DateRange } from './components/dashboard/DateRangeSelector'
 import { TenantGrowthChart } from './components/dashboard/TenantGrowthChart'
-import { SearchVolumeChart } from './components/dashboard/SearchVolumeChart'
+import { SearchVolumeChart, type SearchVolumeData } from './components/dashboard/SearchVolumeChart'
 import { StorageUsageChart, type StorageUsageData } from './components/dashboard/StorageUsageChart'
-import { ApiUsageChart } from './components/dashboard/ApiUsageChart'
+import { ApiUsageChart, type ApiUsageData } from './components/dashboard/ApiUsageChart'
 import { ExportData } from './components/dashboard/ExportData'
 import { TypesenseHealthWidget } from './components/dashboard/TypesenseHealthWidget'
 import { EmbeddingStatsChart } from './components/dashboard/EmbeddingStatsChart'
@@ -107,6 +108,8 @@ interface DailyStatsData {
   date: string
 }
 
+type TenantUsageDashboardRow = Database['public']['Views']['tenant_usage_dashboard']['Row']
+
 export const Dashboard = () => {
   const { role, isOwner } = useRBAC()
   const [dateRange, setDateRange] = useState<DateRange>({
@@ -115,12 +118,12 @@ export const Dashboard = () => {
   })
 
   const [chartData, setChartData] = useState<{
-    tenantGrowth: Record<string, unknown>[]
-    searchVolume: Record<string, unknown>[]
-    storageUsage: Record<string, unknown>[]
-    apiUsage: Record<string, unknown>[]
-    embeddingStats: Record<string, unknown>[]
-    searchHeatmap: Record<string, unknown>[]
+    tenantGrowth: TenantGrowthData[]
+    searchVolume: SearchVolumeData[]
+    storageUsage: StorageUsageData[]
+    apiUsage: ApiUsageData[]
+    embeddingStats: EmbeddingStatsData[]
+    searchHeatmap: SearchHeatmapData[]
     planDistribution: PlanDistributionData[]
   }>({
     tenantGrowth: [],
@@ -189,24 +192,31 @@ export const Dashboard = () => {
   // Fetch and process chart data
   useEffect(() => {
     const fetchChartData = async () => {
-      if (!dailyStats || dailyStats.length === 0) return
+      const dailyStatsRows = (dailyStats as DailyStatsData[] | undefined) ?? []
+      const tenantUsageRows = (tenantUsage as TenantUsageDashboardRow[] | undefined) ?? []
+      const tenantRows = (tenants as TenantData[] | undefined) ?? []
+
+      if (dailyStatsRows.length === 0) return
 
       // Process Tenant Growth Data
-      const tenantGrowthData: Record<string, unknown>[] = []
+      const tenantGrowthData: TenantGrowthData[] = []
       let cumulativeTenants = 0
 
-      dailyStats.forEach((stat) => {
+      dailyStatsRows.forEach((stat) => {
         cumulativeTenants += Number(stat.unique_users_count) || 0
         tenantGrowthData.push({
           date: stat.date,
           total_tenants: cumulativeTenants,
           new_tenants: Number(stat.unique_users_count) || 0,
-          active_tenants: Math.floor(cumulativeTenants * 0.8) // Estimate active as 80%
+          active_tenants: Math.floor(cumulativeTenants * 0.8), // Estimate active as 80%
+          free_count: 0,
+          pro_count: 0,
+          scale_count: 0
         })
       })
 
       // Process Search Volume Data
-      const searchVolumeData = dailyStats.map((stat) => ({
+      const searchVolumeData: SearchVolumeData[] = dailyStatsRows.map((stat) => ({
         date: stat.date,
         search_count: Number(stat.search_count) || 0,
         avg_response_time: Math.floor(Math.random() * 100 + 50), // Mock data for response time
@@ -214,7 +224,7 @@ export const Dashboard = () => {
       }))
 
       // Process Storage Usage Data
-      const storageUsageData = (tenantUsage || []).map((usage: TenantUsageDashboard['tenant_usage_dashboard']['Row'], index: number) => ({
+      const storageUsageData: StorageUsageData[] = tenantUsageRows.map((usage: TenantUsageDashboardRow, index) => ({
         tenant_name: usage.plan_display_name || `Tenant ${index + 1}`,
         storage_used_mb: Number(usage.storage_used_mb) / (1024 * 1024) || 0,
         storage_limit_mb: Number(usage.storage_limit_mb) || 100,
@@ -224,7 +234,7 @@ export const Dashboard = () => {
       }))
 
       // Process API Usage Data
-      const apiUsageData = dailyStats.map((stat) => ({
+      const apiUsageData: ApiUsageData[] = dailyStatsRows.map((stat) => ({
         date: stat.date,
         api_calls_count: Number(stat.api_calls_count) || 0,
         search_count: Number(stat.search_count) || 0,
@@ -240,7 +250,7 @@ export const Dashboard = () => {
       const planCounts = new Map<string, { count: number; revenue: number }>()
       const planPrices: Record<string, number> = { free: 0, pro: 29, scale: 99, enterprise: 299 }
 
-      ;(tenants as TenantData[] || []).forEach((tenant) => {
+      tenantRows.forEach((tenant) => {
         const plan = tenant.plan_type || 'free'
         if (!planCounts.has(plan)) {
           planCounts.set(plan, { count: 0, revenue: 0 })
@@ -250,7 +260,7 @@ export const Dashboard = () => {
         planData.revenue += planPrices[plan] || 0
       })
 
-      const totalTenants = (tenants as TenantData[] || []).length || 1
+      const totalTenants = tenantRows.length || 1
       const planDistributionData: PlanDistributionData[] = Array.from(planCounts.entries()).map(([plan, data]) => ({
         plan,
         count: data.count,
@@ -273,6 +283,8 @@ export const Dashboard = () => {
   }, [dailyStats, tenantUsage, tenants])
 
   const isLoading = tenantsLoading || documentsLoading || searchLogsLoading || userTenantsLoading
+  const tenantUsageRows: TenantUsageDashboardRow[] = (tenantUsage as TenantUsageDashboardRow[] | undefined) ?? []
+  const dailyStatsRows: DailyStatsData[] = (dailyStats as DailyStatsData[] | undefined) ?? []
 
   // Enable real-time analytics updates
   const { isLive } = useRealtimeAnalytics(
@@ -404,19 +416,19 @@ export const Dashboard = () => {
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Storage Used</span>
                     <Badge variant="outline">
-                      {(dailyStats as TenantUsageDashboard['tenant_usage_dashboard']['Row'][])?.[0]?.storage_used_mb || 0} MB
+                      {tenantUsageRows[0]?.storage_used_mb ?? 0} MB
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">API Calls</span>
                     <Badge variant="outline">
-                      {(dailyStats as TenantUsageDashboard['tenant_usage_dashboard']['Row'][])?.[0]?.api_calls_count || 0}
+                      {dailyStatsRows[0]?.api_calls_count ?? 0}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Today's Searches</span>
                     <Badge variant="outline">
-                      {(dailyStats as TenantUsageDashboard['tenant_usage_dashboard']['Row'][])?.[0]?.search_count || 0}
+                      {dailyStatsRows[0]?.search_count ?? 0}
                     </Badge>
                   </div>
                 </div>
@@ -429,33 +441,33 @@ export const Dashboard = () => {
           {/* Interactive Charts Grid */}
           <div className="grid gap-4 md:grid-cols-2">
             <TenantGrowthChart
-              data={chartData.tenantGrowth as Record<string, unknown>[]}
+              data={chartData.tenantGrowth}
               isLoading={dailyStatsLoading}
             />
             <PlanDistributionChart
-              data={chartData.planDistribution as PlanDistributionData[]}
+              data={chartData.planDistribution}
               isLoading={tenantsLoading}
             />
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <SearchVolumeChart
-              data={chartData.searchVolume as Record<string, unknown>[]}
+              data={chartData.searchVolume}
               isLoading={dailyStatsLoading}
             />
             <ApiUsageChart
-              data={chartData.apiUsage as Record<string, unknown>[]}
+              data={chartData.apiUsage}
               isLoading={dailyStatsLoading}
             />
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <StorageUsageChart
-              data={chartData.storageUsage as Record<string, unknown>[]}
+              data={chartData.storageUsage}
               isLoading={tenantUsageLoading}
             />
             <EmbeddingStatsChart
-              data={chartData.embeddingStats as Record<string, unknown>[]}
+              data={chartData.embeddingStats}
               isLoading={documentsLoading}
             />
           </div>
@@ -463,7 +475,7 @@ export const Dashboard = () => {
           {/* Full width heatmap */}
           <div className="grid gap-4">
             <SearchHeatmapChart
-              data={chartData.searchHeatmap as Record<string, unknown>[]}
+              data={chartData.searchHeatmap}
               isLoading={searchLogsLoading}
             />
           </div>

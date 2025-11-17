@@ -97,6 +97,10 @@ export function exampleNavigation(fromPath: string, toPath: string) {
  */
 export async function exampleSearchOperation(query: string) {
   const transaction = startTransaction('search-operation', 'task')
+  if (!transaction) {
+    const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`)
+    return response.json()
+  }
 
   try {
     // Track search query
@@ -163,6 +167,13 @@ export async function exampleApiErrorHandling() {
  */
 export async function examplePerformanceMonitoring() {
   const transaction = startTransaction('data-processing', 'task')
+  if (!transaction) {
+    const users = await fetch('/api/users').then(r => r.json())
+    return users.map((user: any) => ({
+      ...user,
+      fullName: `${user.firstName} ${user.lastName}`,
+    }))
+  }
 
   try {
     // Track data fetch

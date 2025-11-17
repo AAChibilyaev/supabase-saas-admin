@@ -5,6 +5,7 @@ import { Route } from 'react-router-dom'
 import { compositeDataProvider } from '../providers/compositeDataProvider'
 import { authProvider } from '../providers/authProvider'
 import { AcceptInvitation } from '../pages/AcceptInvitation'
+import { HealthCheckPage } from '../pages/HealthCheck'
 import type { ReactNode } from 'react'
 
 interface ThemeSelectorProps {
@@ -51,6 +52,7 @@ export function ThemeSelector({
       {children as ReactNode}
       <CustomRoutes noLayout>
         <Route path="/accept-invite/:token" element={<AcceptInvitation />} />
+        <Route path="/health" element={<HealthCheckPage />} />
       </CustomRoutes>
     </Admin>
   )
