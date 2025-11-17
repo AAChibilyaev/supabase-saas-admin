@@ -16,6 +16,7 @@ import {
   ApiKeyCreate as TypesenseApiKeyCreate,
   ApiKeyShow as TypesenseApiKeyShow
 } from './resources/typesense-api-keys'
+import { PresetList, PresetEdit, PresetCreate } from './resources/typesense-presets'
 
 // Icons from lucide-react
 import {
@@ -106,6 +107,14 @@ const App = () => (
         show={TypesenseApiKeyShow}
         icon={Key}
         options={{ label: 'Typesense API Keys' }}
+      />
+      <Resource
+        name="presets"
+        list={PresetList}
+        edit={PresetEdit}
+        create={PresetCreate}
+        icon={Settings}
+        options={{ label: 'Search Presets' }}
       />
 
       {/* User Management */}
