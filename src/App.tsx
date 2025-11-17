@@ -21,6 +21,7 @@ import { CurationSetList, CurationSetEdit, CurationSetCreate } from './resources
 import { SynonymSetList, SynonymSetEdit, SynonymSetCreate } from './resources/typesense-synonyms'
 import { StopwordsList, StopwordsEdit, StopwordsCreate } from './resources/typesense-stopwords'
 import { AliasList, AliasEdit, AliasCreate } from './resources/typesense-aliases'
+import { StemmingDictionaryList, StemmingDictionaryImport, StemmingDictionaryView } from './resources/typesense-stemming'
 import { ConversationModelList, ConversationModelCreate, ConversationModelEdit } from './resources/typesense-conversations'
 import { NLModelList, NLModelEdit, NLModelCreate } from './resources/typesense-nl-models'
 import { AnalyticsDashboard, AnalyticsRules, AnalyticsEvents } from './resources/typesense-analytics'
@@ -50,7 +51,8 @@ import {
   TrendingUp,
   Server,
   MessageSquare,
-  Brain
+  Brain,
+  Languages
 } from 'lucide-react'
 
 // Custom theme based on shadcn
@@ -161,6 +163,14 @@ const App = () => (
         create={StopwordsCreate}
         icon={Ban}
         options={{ label: 'Stopwords' }}
+      />
+      <Resource
+        name="typesense-stemming"
+        list={StemmingDictionaryList}
+        create={StemmingDictionaryImport}
+        show={StemmingDictionaryView}
+        icon={Languages}
+        options={{ label: 'Stemming Dictionaries' }}
       />
       <Resource
         name="typesense-aliases"

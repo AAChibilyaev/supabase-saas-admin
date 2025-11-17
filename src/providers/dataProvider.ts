@@ -16,6 +16,7 @@ const TYPESENSE_RESOURCES = [
   'typesense-documents',
   'typesense-synonyms',
   'typesense-curations',
+  'typesense-stemming',
   'presets',
 ]
 

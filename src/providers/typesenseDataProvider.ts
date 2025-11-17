@@ -49,6 +49,29 @@ export const typesenseDataProvider: DataProvider = {
       }
     }
 
+    // Stemming Dictionaries Management
+    if (resource === 'typesense-stemming') {
+      try {
+        // Note: Typesense doesn't have a built-in stemming dictionary API
+        // This is a mock implementation that could be backed by a custom storage
+        // In production, you might store these in a separate database or file system
+        const result = await (typesenseClient as any).stemming?.dictionaries?.retrieve?.() || { dictionaries: [] }
+        const dictionaries = result.dictionaries || []
+
+        return {
+          data: dictionaries.map((dict: any) => ({
+            ...dict,
+            id: dict.id
+          })),
+          total: dictionaries.length
+        }
+      } catch (error) {
+        console.error('Failed to retrieve stemming dictionaries:', error)
+        // Return empty array as stemming API might not be available
+        return { data: [], total: 0 }
+      }
+    }
+
     if (resource === 'typesense-keys') {
       try {
         const result = await typesenseClient.keys().retrieve()
@@ -202,6 +225,22 @@ export const typesenseDataProvider: DataProvider = {
   getOne: async (resource, params) => {
     if (!typesenseClient) {
       throw new Error('Typesense client is not initialized')
+    }
+
+    // Stemming Dictionaries Management
+    if (resource === 'typesense-stemming') {
+      try {
+        const result = await (typesenseClient as any).stemming?.dictionaries?.(params.id)?.retrieve?.()
+        return {
+          data: {
+            ...result,
+            id: result.id || params.id
+          }
+        }
+      } catch (error) {
+        console.error('Failed to retrieve stemming dictionary:', error)
+        throw error
+      }
     }
 
     // Aliases Management
@@ -432,6 +471,36 @@ export const typesenseDataProvider: DataProvider = {
       throw new Error('Typesense client is not initialized')
     }
 
+    // Stemming Dictionaries Management
+    if (resource === 'typesense-stemming') {
+      try {
+        const { id, language, description, rules } = params.data
+        const parsedRules = typeof rules === 'string' ? JSON.parse(rules) : rules
+
+        const result = await (typesenseClient as any).stemming?.dictionaries?.upsert?.(id, {
+          id,
+          language,
+          description,
+          rules: parsedRules
+        }) || {
+          id,
+          language,
+          description,
+          rules: parsedRules
+        }
+
+        return {
+          data: {
+            ...result,
+            id: result.id || id
+          }
+        }
+      } catch (error) {
+        console.error('Failed to create stemming dictionary:', error)
+        throw error
+      }
+    }
+
     // Aliases Management
     if (resource === 'typesense-aliases') {
       try {
@@ -654,6 +723,37 @@ export const typesenseDataProvider: DataProvider = {
   update: async (resource, params) => {
     if (!typesenseClient) {
       throw new Error('Typesense client is not initialized')
+    }
+
+    // Stemming Dictionaries Management
+    if (resource === 'typesense-stemming') {
+      try {
+        const dictionaryId = params.id.toString()
+        const { language, description, rules } = params.data
+        const parsedRules = typeof rules === 'string' ? JSON.parse(rules) : rules
+
+        const result = await (typesenseClient as any).stemming?.dictionaries?.upsert?.(dictionaryId, {
+          id: dictionaryId,
+          language,
+          description,
+          rules: parsedRules
+        }) || {
+          id: dictionaryId,
+          language,
+          description,
+          rules: parsedRules
+        }
+
+        return {
+          data: {
+            ...result,
+            id: result.id || dictionaryId
+          }
+        }
+      } catch (error) {
+        console.error('Failed to update stemming dictionary:', error)
+        throw error
+      }
     }
 
     // Aliases Management
@@ -881,6 +981,17 @@ export const typesenseDataProvider: DataProvider = {
       throw new Error('Typesense client is not initialized')
     }
 
+    // Stemming Dictionaries Management
+    if (resource === 'typesense-stemming') {
+      try {
+        await (typesenseClient as any).stemming?.dictionaries?.(params.id)?.delete?.()
+        return { data: { id: params.id } }
+      } catch (error) {
+        console.error('Failed to delete stemming dictionary:', error)
+        throw error
+      }
+    }
+
     // Aliases Management
     if (resource === 'typesense-aliases') {
       try {
@@ -1068,6 +1179,16 @@ export const typesenseDataProvider: DataProvider = {
   deleteMany: async (resource, params) => {
     if (!typesenseClient) {
       throw new Error('Typesense client is not initialized')
+    }
+
+    // Stemming Dictionaries Management
+    if (resource === 'typesense-stemming') {
+      const promises = params.ids.map(id =>
+        (typesenseClient as any).stemming?.dictionaries?.(id)?.delete?.()
+      )
+
+      await Promise.all(promises)
+      return { data: params.ids }
     }
 
     // Aliases Management
