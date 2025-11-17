@@ -18,6 +18,10 @@ interface UseRealtimeSubscriptionOptions {
   enabled?: boolean
   showNotifications?: boolean
   onEvent?: (payload: SupabaseRealtimePayload) => void
+  filter?: {
+    column: string
+    value: string | number
+  }
 }
 
 /**
@@ -28,12 +32,19 @@ interface UseRealtimeSubscriptionOptions {
  * @param options.enabled - Whether to enable the subscription (default: true)
  * @param options.showNotifications - Whether to show toast notifications (default: true)
  * @param options.onEvent - Optional callback for handling events
+ * @param options.filter - Optional filter by column/value (e.g., tenant_id)
  *
  * @example
  * ```tsx
  * useRealtimeSubscription({
  *   resource: 'tenants',
  *   showNotifications: true,
+ * })
+ *
+ * // With tenant filtering
+ * useRealtimeSubscription({
+ *   resource: 'documents',
+ *   filter: { column: 'tenant_id', value: 'abc-123' }
  * })
  * ```
  */
@@ -42,6 +53,7 @@ export const useRealtimeSubscription = ({
   enabled = true,
   showNotifications = true,
   onEvent,
+  filter,
 }: UseRealtimeSubscriptionOptions) => {
   const notify = useNotify()
   const refresh = useRefresh()
@@ -51,43 +63,51 @@ export const useRealtimeSubscription = ({
     if (!enabled) return
 
     // Create a channel for the resource
+    const channelName = filter
+      ? `realtime:${resource}:${filter.column}=${filter.value}`
+      : `realtime:${resource}`
+
+    // Build postgres_changes config
+    const changesConfig: any = {
+      event: '*',
+      schema: 'public',
+      table: resource,
+    }
+
+    // Add filter if specified
+    if (filter) {
+      changesConfig.filter = `${filter.column}=eq.${filter.value}`
+    }
+
     const channel = supabaseClient
-      .channel(`realtime:${resource}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: resource,
-        },
-        (payload) => {
-          const typedPayload = payload as unknown as SupabaseRealtimePayload
+      .channel(channelName)
+      .on('postgres_changes', changesConfig, (payload) => {
+        const typedPayload = payload as unknown as SupabaseRealtimePayload
 
-          // Call custom event handler if provided
-          if (onEvent) {
-            onEvent(typedPayload)
-          }
-
-          // Show notifications
-          if (showNotifications) {
-            const resourceName = resource.replace(/_/g, ' ')
-            switch (typedPayload.eventType) {
-              case 'INSERT':
-                notify(`New ${resourceName} created`, { type: 'info' })
-                break
-              case 'UPDATE':
-                notify(`${resourceName} updated`, { type: 'info' })
-                break
-              case 'DELETE':
-                notify(`${resourceName} deleted`, { type: 'warning' })
-                break
-            }
-          }
-
-          // Refresh the view to show updated data
-          refresh()
+        // Call custom event handler if provided
+        if (onEvent) {
+          onEvent(typedPayload)
         }
-      )
+
+        // Show notifications
+        if (showNotifications) {
+          const resourceName = resource.replace(/_/g, ' ')
+          switch (typedPayload.eventType) {
+            case 'INSERT':
+              notify(`New ${resourceName} created`, { type: 'info' })
+              break
+            case 'UPDATE':
+              notify(`${resourceName} updated`, { type: 'info' })
+              break
+            case 'DELETE':
+              notify(`${resourceName} deleted`, { type: 'warning' })
+              break
+          }
+        }
+
+        // Refresh the view to show updated data
+        refresh()
+      })
       .subscribe()
 
     channelRef.current = channel
@@ -99,7 +119,7 @@ export const useRealtimeSubscription = ({
         channelRef.current = null
       }
     }
-  }, [resource, enabled, showNotifications, notify, refresh, onEvent])
+  }, [resource, enabled, showNotifications, notify, refresh, onEvent, filter])
 
   return {
     unsubscribe: () => {

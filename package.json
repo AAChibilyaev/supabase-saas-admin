@@ -27,7 +27,10 @@
     "types:generate:remote": "npx supabase gen types typescript --linked > src/types/database.types.ts",
     "types:check": "tsc --noEmit",
     "supabase:link": "npx supabase link",
-    "supabase:login": "npx supabase login"
+    "supabase:login": "npx supabase login",
+    "test:email": "tsx scripts/test-email-service.ts",
+    "functions:deploy": "npx supabase functions deploy",
+    "functions:deploy:email": "npx supabase functions deploy send-email"
   },
   "dependencies": {
     "@babel/runtime": "^7.28.4",

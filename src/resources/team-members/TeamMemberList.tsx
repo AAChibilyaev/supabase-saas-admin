@@ -17,6 +17,7 @@ import { Chip, Box, Dialog, DialogTitle, DialogContent, DialogActions, Button as
 import { useState } from 'react'
 import { UserX, Shield, Crown } from 'lucide-react'
 import { supabaseClient } from '../../providers/supabaseClient'
+import { useRealtimeSubscription } from '../../hooks/useRealtimeSubscription'
 
 const roleChoices = [
   { id: 'member', name: 'Member' },
@@ -169,10 +170,20 @@ const RemoveMemberButton = ({ record }: { record?: any }) => {
 }
 
 export const TeamMemberList = () => {
+  // Get current tenant for filtering
+  const currentTenant = localStorage.getItem('supabase-admin:selected-tenant')
+
+  // Enable real-time updates for team members with tenant filtering
+  useRealtimeSubscription({
+    resource: 'user_tenants',
+    showNotifications: true,
+    filter: currentTenant ? { column: 'tenant_id', value: currentTenant } : undefined,
+  })
+
   return (
     <List
       sort={{ field: 'created_at', order: 'DESC' }}
-      filter={{ tenant_id: localStorage.getItem('supabase-admin:selected-tenant') }}
+      filter={{ tenant_id: currentTenant }}
     >
       <Datagrid>
         <ReferenceField
