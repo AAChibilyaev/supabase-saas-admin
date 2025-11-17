@@ -17,6 +17,8 @@ import {
   ApiKeyShow as TypesenseApiKeyShow
 } from './resources/typesense-api-keys'
 import { PresetList, PresetEdit, PresetCreate } from './resources/typesense-presets'
+import { CurationSetList, CurationSetEdit, CurationSetCreate } from './resources/typesense-curations'
+import { SynonymSetList, SynonymSetEdit, SynonymSetCreate } from './resources/typesense-synonyms'
 
 // Icons from lucide-react
 import {
@@ -28,7 +30,9 @@ import {
   BarChart3,
   Wallet,
   Settings,
-  Globe
+  Globe,
+  Target,
+  BookA
 } from 'lucide-react'
 
 // Custom theme based on shadcn
@@ -115,6 +119,14 @@ const App = () => (
         create={PresetCreate}
         icon={Settings}
         options={{ label: 'Search Presets' }}
+      />
+      <Resource
+        name="typesense-curations"
+        list={CurationSetList}
+        edit={CurationSetEdit}
+        create={CurationSetCreate}
+        icon={Target}
+        options={{ label: 'Curation Sets' }}
       />
 
       {/* User Management */}
