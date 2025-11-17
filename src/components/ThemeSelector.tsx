@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Admin, type AdminProps } from 'react-admin'
+import { Admin, type AdminProps, CustomRoutes } from 'react-admin'
 import { useTheme } from 'next-themes'
+import { Route } from 'react-router-dom'
 import { compositeDataProvider } from '../providers/compositeDataProvider'
 import { authProvider } from '../providers/authProvider'
+import { AcceptInvitation } from '../pages/AcceptInvitation'
 
 interface ThemeSelectorProps {
   children: AdminProps['children']
@@ -46,6 +48,9 @@ export function ThemeSelector({
       requireAuth
     >
       {children}
+      <CustomRoutes noLayout>
+        <Route path="/accept-invite/:token" element={<AcceptInvitation />} />
+      </CustomRoutes>
     </Admin>
   )
 }

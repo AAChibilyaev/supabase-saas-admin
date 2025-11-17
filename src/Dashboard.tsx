@@ -16,6 +16,7 @@ import { SearchVolumeChart } from './components/dashboard/SearchVolumeChart'
 import { StorageUsageChart } from './components/dashboard/StorageUsageChart'
 import { ApiUsageChart } from './components/dashboard/ApiUsageChart'
 import { ExportData } from './components/dashboard/ExportData'
+import { TypesenseHealthWidget } from './components/dashboard/TypesenseHealthWidget'
 
 interface StatsData {
   totalTenants: number
@@ -221,6 +222,9 @@ export const Dashboard = () => {
           </div>
         </AlertDescription>
       </Alert>
+
+      {/* Typesense Health Widget */}
+      <TypesenseHealthWidget />
 
       {/* Date Range Selector */}
       <DateRangeSelector value={dateRange} onChange={setDateRange} />

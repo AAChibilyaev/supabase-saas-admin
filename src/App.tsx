@@ -9,6 +9,10 @@ import { TenantList, TenantEdit, TenantCreate } from './resources/tenants'
 import { DocumentList } from './resources/documents'
 import { SearchLogList } from './resources/search-logs'
 import { ApiKeyList } from './resources/api-keys'
+import { InvitationList, InvitationCreate } from './resources/team-invitations'
+import { TeamMemberList } from './resources/team-members'
+import { ActivityFeed } from './resources/activity-logs'
+import { SecurityList } from './resources/security'
 import {
   ApiKeyList as TypesenseApiKeyList,
   ApiKeyCreate as TypesenseApiKeyCreate,
@@ -61,7 +65,11 @@ import {
   Languages,
   SearchX,
   Database,
-  Files
+  Files,
+  Mail,
+  UserPlus,
+  ListTree,
+  ShieldCheck
 } from 'lucide-react'
 
 // Custom light theme based on shadcn
@@ -313,6 +321,27 @@ const App = () => (
       {/* Hidden resource for system operations data */}
       <Resource name="typesense-system" />
 
+      {/* Team Management */}
+      <Resource
+        name="team_invitations"
+        list={InvitationList}
+        create={InvitationCreate}
+        icon={Mail}
+        options={{ label: 'Team Invitations' }}
+      />
+      <Resource
+        name="team-members"
+        list={TeamMemberList}
+        icon={UserPlus}
+        options={{ label: 'Team Members' }}
+      />
+      <Resource
+        name="audit_logs"
+        list={ActivityFeed}
+        icon={ListTree}
+        options={{ label: 'Activity Feed' }}
+      />
+
       {/* User Management */}
       <Resource
         name="user_tenants"
@@ -323,6 +352,14 @@ const App = () => (
         name="profiles"
         icon={Users}
         options={{ label: 'Profiles' }}
+      />
+
+      {/* Security Settings */}
+      <Resource
+        name="security"
+        list={SecurityList}
+        icon={ShieldCheck}
+        options={{ label: 'Security Settings' }}
       />
 
       {/* Analytics & Usage */}
