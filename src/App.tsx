@@ -20,6 +20,7 @@ import { PresetList, PresetEdit, PresetCreate } from './resources/typesense-pres
 import { CurationSetList, CurationSetEdit, CurationSetCreate } from './resources/typesense-curations'
 import { SynonymSetList, SynonymSetEdit, SynonymSetCreate } from './resources/typesense-synonyms'
 import { StopwordsList, StopwordsEdit, StopwordsCreate } from './resources/typesense-stopwords'
+import { AliasList, AliasEdit, AliasCreate } from './resources/typesense-aliases'
 
 // Icons from lucide-react
 import {
@@ -34,7 +35,8 @@ import {
   Globe,
   Target,
   BookA,
-  Ban
+  Ban,
+  Link2
 } from 'lucide-react'
 
 // Custom theme based on shadcn
@@ -145,6 +147,14 @@ const App = () => (
         create={StopwordsCreate}
         icon={Ban}
         options={{ label: 'Stopwords' }}
+      />
+      <Resource
+        name="typesense-aliases"
+        list={AliasList}
+        edit={AliasEdit}
+        create={AliasCreate}
+        icon={Link2}
+        options={{ label: 'Collection Aliases' }}
       />
 
       {/* User Management */}

@@ -8,6 +8,33 @@ export const typesenseDataProvider: DataProvider = {
       throw new Error('Typesense client is not initialized')
     }
 
+    // System Operations - not applicable for getList
+    if (resource === 'typesense-system') {
+      return {
+        data: [],
+        total: 0
+      }
+    }
+
+    // Aliases Management
+    if (resource === 'typesense-aliases') {
+      try {
+        const result = await typesenseClient.aliases().retrieve()
+        const aliases = result.aliases || []
+
+        return {
+          data: aliases.map((alias: any) => ({
+            ...alias,
+            id: alias.name
+          })),
+          total: aliases.length
+        }
+      } catch (error) {
+        console.error('Failed to retrieve Typesense aliases:', error)
+        throw error
+      }
+    }
+
     if (resource === 'typesense-keys') {
       try {
         const result = await typesenseClient.keys().retrieve()
@@ -109,6 +136,25 @@ export const typesenseDataProvider: DataProvider = {
       }
     }
 
+    // NL Models Management
+    if (resource === 'typesense-nl-models') {
+      try {
+        const result = await (typesenseClient as any).models().retrieve()
+        const models = result.models || []
+
+        return {
+          data: models.map((model: any) => ({
+            ...model,
+            id: model.model_name || model.id
+          })),
+          total: models.length
+        }
+      } catch (error) {
+        console.error('Failed to retrieve Typesense NL models:', error)
+        throw error
+      }
+    }
+
     // For other Typesense resources (collections, documents, etc.)
     const { page, perPage } = params.pagination
     const { field, order } = params.sort
@@ -142,6 +188,22 @@ export const typesenseDataProvider: DataProvider = {
   getOne: async (resource, params) => {
     if (!typesenseClient) {
       throw new Error('Typesense client is not initialized')
+    }
+
+    // Aliases Management
+    if (resource === 'typesense-aliases') {
+      try {
+        const result = await typesenseClient.aliases(params.id).retrieve()
+        return {
+          data: {
+            ...result,
+            id: result.name
+          }
+        }
+      } catch (error) {
+        console.error('Failed to retrieve alias:', error)
+        throw error
+      }
     }
 
     if (resource === 'typesense-keys') {
@@ -356,6 +418,26 @@ export const typesenseDataProvider: DataProvider = {
       throw new Error('Typesense client is not initialized')
     }
 
+    // Aliases Management
+    if (resource === 'typesense-aliases') {
+      try {
+        const { name, collection_name } = params.data
+        const result = await typesenseClient.aliases().upsert(name, {
+          collection_name
+        })
+
+        return {
+          data: {
+            ...result,
+            id: result.name
+          }
+        }
+      } catch (error) {
+        console.error('Failed to create alias:', error)
+        throw error
+      }
+    }
+
     if (resource === 'typesense-keys') {
       try {
         // Build key schema with proper Typesense API format
@@ -558,6 +640,27 @@ export const typesenseDataProvider: DataProvider = {
   update: async (resource, params) => {
     if (!typesenseClient) {
       throw new Error('Typesense client is not initialized')
+    }
+
+    // Aliases Management
+    if (resource === 'typesense-aliases') {
+      try {
+        const aliasName = params.id.toString()
+        const { collection_name } = params.data
+        const result = await typesenseClient.aliases().upsert(aliasName, {
+          collection_name
+        })
+
+        return {
+          data: {
+            ...result,
+            id: result.name
+          }
+        }
+      } catch (error) {
+        console.error('Failed to update alias:', error)
+        throw error
+      }
     }
 
     // API keys cannot be updated in Typesense, only deleted and recreated
@@ -764,6 +867,17 @@ export const typesenseDataProvider: DataProvider = {
       throw new Error('Typesense client is not initialized')
     }
 
+    // Aliases Management
+    if (resource === 'typesense-aliases') {
+      try {
+        await typesenseClient.aliases(params.id).delete()
+        return { data: { id: params.id } }
+      } catch (error) {
+        console.error('Failed to delete alias:', error)
+        throw error
+      }
+    }
+
     if (resource === 'typesense-keys') {
       try {
         await typesenseClient.keys(params.id).delete()
@@ -918,6 +1032,16 @@ export const typesenseDataProvider: DataProvider = {
   deleteMany: async (resource, params) => {
     if (!typesenseClient) {
       throw new Error('Typesense client is not initialized')
+    }
+
+    // Aliases Management
+    if (resource === 'typesense-aliases') {
+      const promises = params.ids.map(id =>
+        typesenseClient.aliases(id).delete()
+      )
+
+      await Promise.all(promises)
+      return { data: params.ids }
     }
 
     if (resource === 'typesense-keys') {
