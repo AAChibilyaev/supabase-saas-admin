@@ -42,6 +42,7 @@ import {
   DocumentEdit as TypesenseDocumentEdit,
   DocumentShow as TypesenseDocumentShow,
 } from './resources/typesense-documents'
+import { WidgetList, WidgetCreate, WidgetBuilder, WidgetShow } from './resources/widgets'
 
 // Icons from lucide-react
 import {
@@ -72,7 +73,8 @@ import {
   ListTree,
   ShieldCheck,
   Plug,
-  Webhook
+  Webhook,
+  Layers
 } from 'lucide-react'
 
 // Custom light theme based on shadcn
@@ -420,8 +422,12 @@ const App = () => (
       />
       <Resource
         name="widgets"
-        icon={Settings}
-        options={{ label: 'Widgets' }}
+        list={WidgetList}
+        create={WidgetCreate}
+        edit={WidgetBuilder}
+        show={WidgetShow}
+        icon={Layers}
+        options={{ label: 'Search Widgets' }}
       />
     </ThemeSelector>
   </TenantProvider>
