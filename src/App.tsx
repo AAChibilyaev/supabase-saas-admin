@@ -19,6 +19,7 @@ import {
 import { PresetList, PresetEdit, PresetCreate } from './resources/typesense-presets'
 import { CurationSetList, CurationSetEdit, CurationSetCreate } from './resources/typesense-curations'
 import { SynonymSetList, SynonymSetEdit, SynonymSetCreate } from './resources/typesense-synonyms'
+import { StopwordsList, StopwordsEdit, StopwordsCreate } from './resources/typesense-stopwords'
 
 // Icons from lucide-react
 import {
@@ -32,7 +33,8 @@ import {
   Settings,
   Globe,
   Target,
-  BookA
+  BookA,
+  Ban
 } from 'lucide-react'
 
 // Custom theme based on shadcn
@@ -135,6 +137,14 @@ const App = () => (
         create={SynonymSetCreate}
         icon={BookA}
         options={{ label: 'Synonym Sets' }}
+      />
+      <Resource
+        name="typesense-stopwords"
+        list={StopwordsList}
+        edit={StopwordsEdit}
+        create={StopwordsCreate}
+        icon={Ban}
+        options={{ label: 'Stopwords' }}
       />
 
       {/* User Management */}
