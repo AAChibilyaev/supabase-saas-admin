@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - develop
   workflow_dispatch:
     inputs:
       environment:
@@ -38,13 +39,15 @@ jobs:
         run: npm ci
 
       - name: Build application
-        run: npm run build
+        run: npm run build:staging
         env:
           VITE_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
-          VITE_STRIPE_PUBLIC_KEY: ${{ secrets.STAGING_STRIPE_PUBLIC_KEY }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STAGING_STRIPE_PUBLISHABLE_KEY }}
           VITE_TYPESENSE_HOST: ${{ secrets.STAGING_TYPESENSE_HOST }}
           VITE_TYPESENSE_API_KEY: ${{ secrets.STAGING_TYPESENSE_API_KEY }}
+          VITE_TYPESENSE_PORT: ${{ secrets.STAGING_TYPESENSE_PORT || '443' }}
+          VITE_TYPESENSE_PROTOCOL: ${{ secrets.STAGING_TYPESENSE_PROTOCOL || 'https' }}
 
       - name: Deploy to Vercel (Staging)
         uses: amondnet/vercel-action@v25
@@ -92,13 +95,20 @@ jobs:
         run: npx tsc -b --noEmit
 
       - name: Build application
-        run: npm run build
+        run: npm run build:prod
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          VITE_STRIPE_PUBLIC_KEY: ${{ secrets.VITE_STRIPE_PUBLIC_KEY }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
           VITE_TYPESENSE_HOST: ${{ secrets.VITE_TYPESENSE_HOST }}
           VITE_TYPESENSE_API_KEY: ${{ secrets.VITE_TYPESENSE_API_KEY }}
+          VITE_TYPESENSE_PORT: ${{ secrets.VITE_TYPESENSE_PORT || '443' }}
+          VITE_TYPESENSE_PROTOCOL: ${{ secrets.VITE_TYPESENSE_PROTOCOL || 'https' }}
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          VITE_SENTRY_ORG: ${{ secrets.VITE_SENTRY_ORG }}
+          VITE_SENTRY_PROJECT: ${{ secrets.VITE_SENTRY_PROJECT }}
+          VITE_SENTRY_ENVIRONMENT: production
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Deploy to Vercel (Production)
         uses: amondnet/vercel-action@v25

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useLayoutEffect } from 'react'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import { RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -14,21 +14,23 @@ export const UpdateNotification = () => {
   const [showUpdatePrompt, setShowUpdatePrompt] = useState(false)
 
   const {
-    offlineReady: [offlineReady, setOfflineReady],
+    offlineReady: [offlineReady ],
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
-    onRegistered(r) {
+    onRegistered(r: unknown) {
       console.log('SW Registered:', r)
     },
-    onRegisterError(error) {
+    onRegisterError(error: unknown) {
       console.log('SW registration error', error)
     },
   })
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (needRefresh) {
-      setShowUpdatePrompt(true)
+      setTimeout(() => {
+        setShowUpdatePrompt(true)
+      }, 0)
     }
   }, [needRefresh])
 

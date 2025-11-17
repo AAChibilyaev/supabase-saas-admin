@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 import { Admin, type AdminProps, CustomRoutes } from 'react-admin'
 import { useTheme } from 'next-themes'
 import { Route } from 'react-router-dom'
 import { compositeDataProvider } from '../providers/compositeDataProvider'
 import { authProvider } from '../providers/authProvider'
 import { AcceptInvitation } from '../pages/AcceptInvitation'
+import { HealthCheckPage } from '../pages/HealthCheck'
+import type { ReactNode } from 'react'
 
 interface ThemeSelectorProps {
   children: AdminProps['children']
@@ -25,8 +27,8 @@ export function ThemeSelector({
   const [mounted, setMounted] = useState(false)
 
   // Prevent hydration mismatch
-  useEffect(() => {
-    setMounted(true)
+  useLayoutEffect(() => {
+    void Promise.resolve().then(() => setMounted(true))
   }, [])
 
   if (!mounted) {
@@ -47,9 +49,10 @@ export function ThemeSelector({
       layout={layout}
       requireAuth
     >
-      {children}
+      {children as ReactNode}
       <CustomRoutes noLayout>
         <Route path="/accept-invite/:token" element={<AcceptInvitation />} />
+        <Route path="/health" element={<HealthCheckPage />} />
       </CustomRoutes>
     </Admin>
   )

@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { Shield, Key, LifeBuoy, Activity } from 'lucide-react'
 import { MFASetup } from './MFASetup'

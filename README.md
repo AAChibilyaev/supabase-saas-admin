@@ -272,6 +272,15 @@ Add tenant-specific branding via:
 
 This project includes a comprehensive CI/CD pipeline with GitHub Actions for automated testing, building, and deployment.
 
+### Quick Start Deployment
+
+1. **Configure Environment Variables** (see [Environment Setup Guide](./docs/ENVIRONMENT_SETUP.md))
+2. **Deploy Database Migrations** (see [Supabase CLI Setup](./docs/SUPABASE_CLI_SETUP.md))
+3. **Deploy Edge Functions** (see [Edge Functions Deployment](./docs/EDGE_FUNCTIONS_DEPLOYMENT.md))
+4. **Deploy Frontend** (automatic via GitHub Actions or manual via Vercel)
+
+For detailed deployment instructions, see [Production Deployment Guide](./docs/PRODUCTION_DEPLOYMENT.md).
+
 ### CI/CD Pipeline
 
 The project uses **4 automated workflows**:
@@ -333,6 +342,8 @@ vercel --prod
 ### Required Secrets
 
 Configure these in GitHub Repository Settings > Secrets and variables > Actions:
+
+See [CI/CD Setup Guide](./docs/CI_CD_SETUP.md) for detailed instructions.
 
 **Vercel:**
 - `VERCEL_TOKEN` - Deployment token

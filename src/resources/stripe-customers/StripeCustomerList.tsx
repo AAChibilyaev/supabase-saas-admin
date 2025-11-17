@@ -8,6 +8,7 @@ import {
   ChipField,
   ShowButton,
   FilterButton,
+  ExportButton,
   TopToolbar,
   TextInput,
   SelectInput,
@@ -17,11 +18,19 @@ import { Badge } from '@/components/ui/badge'
 import { PermissionGate } from '@/components/permissions'
 import type { UserPermissions } from '@/types/permissions'
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription'
+import { DateRangeFilter } from '@/components/filters/DateRangeFilter'
+import { FilterPresets } from '@/components/filters/FilterPresets'
+import {
+  createExporter,
+  formatDateForExport,
+} from '@/utils/exporter'
 
 const StripeCustomerListActions = () => {
   return (
     <TopToolbar>
+      <FilterPresets resource="stripe_customers" />
       <FilterButton />
+      <ExportButton />
     </TopToolbar>
   )
 }
@@ -30,7 +39,20 @@ const stripeCustomerFilters = [
   <TextInput key="search" label="Search" source="q" alwaysOn />,
   <TextInput key="email" label="Email" source="email" />,
   <TextInput key="stripe_customer_id" label="Stripe Customer ID" source="stripe_customer_id" />,
+  <TextInput key="name" label="Name" source="name" />,
+  <DateRangeFilter key="created_at" source="created_at" label="Date Range" />,
 ]
+
+// CSV Exporter configuration
+const stripeCustomerExporter = createExporter('stripe_customers', {
+  'ID': 'id',
+  'Email': 'email',
+  'Name': 'name',
+  'Stripe Customer ID': 'stripe_customer_id',
+  'User ID': 'user_id',
+  'Created At': (record: any) => formatDateForExport(record.created_at),
+  'Updated At': (record: any) => formatDateForExport(record.updated_at),
+})
 
 const SubscriptionStatusField = ({ record }: { record?: any }) => {
   if (!record?.stripe_customer_id) {
@@ -53,6 +75,7 @@ export const StripeCustomerList = () => {
     <List
       filters={stripeCustomerFilters}
       actions={<StripeCustomerListActions />}
+      exporter={stripeCustomerExporter}
       perPage={25}
       sort={{ field: 'created_at', order: 'DESC' }}
     >

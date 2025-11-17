@@ -28,7 +28,7 @@ describeIfEnabled('Typesense Integration', () => {
     // Clean up any existing test collection
     try {
       await typesenseClient.collections(testCollectionName).delete()
-    } catch (error) {
+    } catch {
       // Collection might not exist, ignore error
     }
   })
@@ -348,9 +348,6 @@ describeIfEnabled('Typesense Integration', () => {
     it('should delete a document via data provider', async () => {
       const result = await typesenseDataProvider.delete('typesense-documents', {
         id: 'provider-test-1',
-        previousData: {
-          collection: testCollectionName,
-        },
       })
 
       expect(result.data).toBeDefined()

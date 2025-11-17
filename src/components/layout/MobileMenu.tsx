@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
 import { Menu as MenuIcon } from 'lucide-react'
 import {
   Sheet,
@@ -14,8 +13,6 @@ import { CustomMenu } from './CustomMenu'
 
 export const MobileMenu = () => {
   const [open, setOpen] = useState(false)
-  const navigate = useNavigate()
-  const location = useLocation()
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>

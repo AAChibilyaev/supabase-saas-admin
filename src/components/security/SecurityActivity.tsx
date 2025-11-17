@@ -50,7 +50,7 @@ export function SecurityActivity() {
       if (session.session) {
         setCurrentSession({
           id: session.session.access_token.substring(0, 8) + '...',
-          created_at: session.session.created_at || new Date().toISOString(),
+          created_at: new Date().toISOString(),
           current: true,
         })
       }

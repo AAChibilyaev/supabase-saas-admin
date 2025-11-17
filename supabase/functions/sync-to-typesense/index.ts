@@ -9,9 +9,8 @@ const corsHeaders = {
 
 interface SyncRequest {
   table: string
-  record: any
+  record: unknown
   operation: 'INSERT' | 'UPDATE' | 'DELETE'
-  schema?: any
 }
 
 serve(async (req) => {
@@ -24,27 +23,28 @@ serve(async (req) => {
     // Initialize Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
       }
     )
 
     // Initialize Typesense client
     const typesenseClient = new Typesense.Client({
       nodes: [{
-        host: Deno.env.get('TYPESENSE_HOST') || 'localhost',
-        port: parseInt(Deno.env.get('TYPESENSE_PORT') || '8108'),
-        protocol: Deno.env.get('TYPESENSE_PROTOCOL') || 'http'
+        host: Deno.env.get('TYPESENSE_HOST') ?? '',
+        port: parseInt(Deno.env.get('TYPESENSE_PORT') ?? ''),
+        protocol: Deno.env.get('TYPESENSE_PROTOCOL') ?? ''
       }],
-      apiKey: Deno.env.get('TYPESENSE_API_KEY') || '',
-      connectionTimeoutSeconds: 10,
+      apiKey: Deno.env.get('TYPESENSE_API_KEY') as string,
+      connectionTimeoutSeconds: 10, as string as number,
     })
 
     // Parse request body
-    const { table, record, operation, schema }: SyncRequest = await req.json()
+    const { table, record, operation }: SyncRequest = await req.json()
 
     if (!table || !record) {
       return new Response(
@@ -67,17 +67,17 @@ serve(async (req) => {
           .collections(collectionName)
           .documents()
           .upsert({
-            id: record.id,
+            id: (record as { id: string }).id,
             ...record,
             // Convert timestamps to Unix epoch for Typesense
-            created_at: record.created_at ? new Date(record.created_at).getTime() / 1000 : undefined,
-            updated_at: record.updated_at ? new Date(record.updated_at).getTime() / 1000 : undefined,
+            created_at: (record as { created_at: string }).created_at ? new Date((record as { created_at: string }).created_at).getTime() / 1000 : undefined,
+            updated_at: (record as { updated_at: string }).updated_at ? new Date((record as { updated_at: string }).updated_at).getTime() / 1000 : undefined,
           })
 
         return new Response(
           JSON.stringify({
             success: true,
-            message: `Document ${record.id} synced to collection ${collectionName}`
+            message: `Document ${(record as { id: string }).id} synced to collection ${collectionName}`
           }),
           {
             status: 200,
@@ -89,13 +89,13 @@ serve(async (req) => {
         // Delete document from Typesense
         await typesenseClient
           .collections(collectionName)
-          .documents(record.id)
+          .documents((record as { id: string }).id)
           .delete()
 
         return new Response(
           JSON.stringify({
             success: true,
-            message: `Document ${record.id} deleted from collection ${collectionName}`
+            message: `Document ${(record as { id: string }).id} deleted from collection ${collectionName}`
           }),
           {
             status: 200,
@@ -116,7 +116,7 @@ serve(async (req) => {
     console.error('Sync error:', error)
     return new Response(
       JSON.stringify({
-        error: error.message || 'An error occurred while syncing to Typesense'
+        error: error instanceof Error ? error.message : 'An error occurred while syncing to Typesense'
       }),
       {
         status: 500,

@@ -1,8 +1,18 @@
 import OpenAI from 'openai'
 
+// Get API key from environment
+const apiKey = import.meta.env.VITE_OPENAI_API_KEY
+
+if (!apiKey) {
+  console.warn(
+    'VITE_OPENAI_API_KEY is not configured. Please add it to your .env file:\n' +
+    'VITE_OPENAI_API_KEY=sk-your-openai-api-key'
+  )
+}
+
 // Initialize OpenAI client
 const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+  apiKey: apiKey || '', // Provide empty string to avoid undefined error
   dangerouslyAllowBrowser: true, // Note: For production, use Edge Functions instead
 })
 
@@ -65,6 +75,18 @@ export async function generateEmbedding(
   const startTime = Date.now()
   const finalConfig = { ...DEFAULT_CONFIG, ...config }
 
+  if (!apiKey) {
+    return {
+      embedding: null,
+      model: finalConfig.model,
+      dimensions: 0,
+      tokens: 0,
+      processingTime: Date.now() - startTime,
+      success: false,
+      error: 'VITE_OPENAI_API_KEY is not configured. Please add it to your .env file.',
+    }
+  }
+
   try {
     // Truncate text to max tokens (rough estimate: 1 token ≈ 4 characters)
     const maxChars = finalConfig.maxTokens * 4
@@ -101,8 +123,8 @@ export async function generateEmbedding(
       processingTime,
       success: true,
     }
-  } catch (error: any) {
-    const processingTime = Date.now() - startTime
+  } catch (error: unknown) {
+    const processingTime = Date.now(  ) - startTime
     console.error('Embedding generation failed:', error)
 
     return {
@@ -112,7 +134,7 @@ export async function generateEmbedding(
       tokens: 0,
       processingTime,
       success: false,
-      error: error?.message || 'Unknown error occurred',
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
     }
   }
 }

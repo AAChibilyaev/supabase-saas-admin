@@ -29,13 +29,6 @@ function UsageMeter({ icon, label, current, limit, formatter = formatNumber }: U
   const percentage = calculateUsagePercentage(current, limit)
   const color = getUsageColor(percentage)
 
-  const getProgressColor = () => {
-    if (color === 'red') return 'bg-red-500'
-    if (color === 'orange') return 'bg-orange-500'
-    if (color === 'yellow') return 'bg-yellow-500'
-    return 'bg-green-500'
-  }
-
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">

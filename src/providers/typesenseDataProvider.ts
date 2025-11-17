@@ -35,8 +35,8 @@ export const typesenseDataProvider: DataProvider = {
           }
         }
 
-        const { page, perPage } = params.pagination
-        const { field, order } = params.sort
+        const { page = 1, perPage = 10 } = params.pagination ?? {}
+        const { field = 'id', order = 'ASC' } = params.sort ?? {}
         const searchQuery = params.filter?.q || '*'
 
         const result = await typesenseClient
@@ -170,7 +170,7 @@ export const typesenseDataProvider: DataProvider = {
     // Curation Sets Management
     if (resource === 'typesense-curations') {
       try {
-        const result = await typesenseClient.multiSearch.perform({
+        await typesenseClient.multiSearch.perform({
           searches: []
         })
         // Note: Typesense doesn't have a direct API to list all curation sets
@@ -251,8 +251,8 @@ export const typesenseDataProvider: DataProvider = {
     }
 
     // For other Typesense resources (collections, documents, etc.)
-    const { page, perPage } = params.pagination
-    const { field, order } = params.sort
+    const { page = 1, perPage = 10 } = params.pagination ?? {}
+    const { field = 'id', order = 'ASC' } = params.sort ?? {}
 
     try {
       const result = await typesenseClient
@@ -305,7 +305,7 @@ export const typesenseDataProvider: DataProvider = {
     if (resource === 'typesense-documents') {
       try {
         // ID format: collection:documentId
-        const [collection, documentId] = params.id.toString().split(':')
+          const [collection, documentId] = params.id.toString().split(':')
 
         if (!collection || !documentId) {
           throw new Error('Invalid document ID format. Expected: collection:documentId')
@@ -466,44 +466,6 @@ export const typesenseDataProvider: DataProvider = {
       }
     }
 
-    // Synonym Sets Management
-    if (resource === 'typesense-synonyms') {
-      try {
-        const { collection = 'products', id, synonymType, ...synonymData } = params.data
-
-        // Build synonym schema based on type
-        const synonymSchema: any = {
-          id: id
-        }
-
-        // Handle one-way vs multi-way synonyms
-        if (synonymType === 'one-way' && synonymData.root) {
-          // One-way synonym: A → B
-          synonymSchema.root = synonymData.root
-          synonymSchema.synonyms = synonymData.synonyms || []
-        } else {
-          // Multi-way synonym: A ↔ B ↔ C
-          synonymSchema.synonyms = synonymData.synonyms || []
-        }
-
-        const result = await typesenseClient
-          .collections(collection)
-          .synonyms()
-          .upsert(id, synonymSchema)
-
-        return {
-          data: {
-            ...result,
-            id: `${collection}:${id}`
-          }
-        }
-      } catch (error) {
-        console.error('Failed to create synonym set:', error)
-        throw error
-      }
-    }
-
-
     const result = await typesenseClient
       .collections(resource)
       .documents(params.id.toString())
@@ -545,8 +507,8 @@ export const typesenseDataProvider: DataProvider = {
       throw new Error('Typesense client is not initialized')
     }
 
-    const { page, perPage } = params.pagination
-    const { field, order } = params.sort
+    const { page = 1, perPage = 10 } = params.pagination ?? {}
+    const { field = 'id', order = 'ASC' } = params.sort ?? {}
 
     const result = await typesenseClient
       .collections(resource)

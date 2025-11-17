@@ -2,13 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { format } from 'date-fns'
 import { TrendingUp } from 'lucide-react'
-
-interface TenantGrowthData {
-  date: string
-  total_tenants: number
-  new_tenants: number
-  active_tenants: number
-}
+import type { TenantGrowthData } from '../../services/analytics'
 
 interface TenantGrowthChartProps {
   data: TenantGrowthData[]

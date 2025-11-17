@@ -105,7 +105,7 @@ export const bulkImportDocuments = async (
           })
 
         // Parse the import result (also in JSONL format)
-        const importLines = importResult.split('\n').filter((line) => line.trim())
+        const importLines = (importResult as string).split('\n').filter((line: string) => line.trim())
 
         for (let j = 0; j < importLines.length; j++) {
           try {
@@ -311,11 +311,13 @@ export const validateDocuments = async (
   try {
     // Get collection schema
     const collection = await typesenseClient.collections(collectionName).retrieve()
-    const schemaFields = collection.fields || []
+    const schemaFields =
+      (collection.fields as Array<{ name: string; optional?: boolean; type?: string }> | undefined) ||
+      []
 
     // Create a map of required fields
     const requiredFields = new Set(
-      schemaFields.filter((f: any) => !f.optional).map((f: any) => f.name)
+      schemaFields.filter((f) => !f.optional).map((f) => f.name)
     )
 
     // Validate each document
@@ -338,7 +340,7 @@ export const validateDocuments = async (
       for (const field of schemaFields) {
         if (field.name in doc && doc[field.name] !== null) {
           const value = doc[field.name]
-          const fieldType = field.type
+          const fieldType = field.type || 'string'
 
           // Type validation
           if (fieldType === 'string' && typeof value !== 'string') {

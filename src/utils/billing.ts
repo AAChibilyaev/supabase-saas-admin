@@ -10,10 +10,10 @@ import type {
   StripeInvoice,
   PaymentMethod,
   BillingAlert,
-  TenantUsage,
   CheckoutSessionResponse,
   CustomerPortalResponse,
 } from '@/types/billing'
+import type { TenantUsage as DbTenantUsage } from '@/types/supabase'
 
 /**
  * Fetch all active billing plans
@@ -151,7 +151,7 @@ export const acknowledgeBillingAlert = async (
 /**
  * Fetch tenant usage
  */
-export const fetchTenantUsage = async (tenantId: string): Promise<TenantUsage | null> => {
+export const fetchTenantUsage = async (tenantId: string): Promise<DbTenantUsage | null> => {
   const { data, error } = await supabase
     .from('tenant_usage')
     .select('*')
@@ -170,7 +170,7 @@ export const fetchTenantUsage = async (tenantId: string): Promise<TenantUsage | 
 export const fetchUsageHistory = async (
   tenantId: string,
   months: number = 6
-): Promise<TenantUsage[]> => {
+): Promise<DbTenantUsage[]> => {
   const startDate = new Date()
   startDate.setMonth(startDate.getMonth() - months)
 
@@ -227,8 +227,8 @@ export const createCustomerPortalSession = async (
  * Cancel subscription
  */
 export const cancelSubscription = async (
-  subscriptionId: string,
-  cancelAtPeriodEnd: boolean = true
+  _subscriptionId: string,
+  _cancelAtPeriodEnd: boolean = true
 ): Promise<void> => {
   // This would typically call a Stripe API endpoint
   // For now, we'll use the customer portal
@@ -252,7 +252,7 @@ export const getStripeCustomer = async (userId: string) => {
 /**
  * Create or get Stripe customer
  */
-export const ensureStripeCustomer = async (userId: string, email: string) => {
+export const ensureStripeCustomer = async (userId: string, _email: string) => {
   try {
     return await getStripeCustomer(userId)
   } catch {

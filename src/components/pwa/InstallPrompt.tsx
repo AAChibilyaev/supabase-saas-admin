@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useLayoutEffect } from 'react'
 import { X, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,7 +19,7 @@ export const InstallPrompt = () => {
   const [showPrompt, setShowPrompt] = useState(false)
   const [isInstalled, setIsInstalled] = useState(false)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     // Check if already installed
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true)

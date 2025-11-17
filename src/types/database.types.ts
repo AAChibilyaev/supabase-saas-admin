@@ -147,6 +147,68 @@ export type Database = {
         }
         Relationships: []
       }
+      billing_alerts: {
+        Row: {
+          id: string
+          tenant_id: string
+          user_id: string | null
+          severity: string
+          alert_type: string
+          threshold: number | null
+          current_value: number | null
+          triggered_at: string
+          created_at: string
+          title: string
+          message: string | null
+          acknowledged: boolean
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          metadata: Json
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          user_id?: string | null
+          severity: string
+          alert_type: string
+          threshold?: number | null
+          current_value?: number | null
+          triggered_at: string
+          created_at?: string
+          title: string
+          message?: string | null
+          acknowledged?: boolean
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          metadata?: Json
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          user_id?: string | null
+          severity?: string
+          alert_type?: string
+          threshold?: number | null
+          current_value?: number | null
+          triggered_at?: string
+          created_at?: string
+          title?: string
+          message?: string | null
+          acknowledged?: boolean
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          metadata?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_alerts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cms_connections: {
         Row: {
           config: Json
@@ -618,6 +680,45 @@ export type Database = {
           },
         ]
       }
+      email_templates: {
+        Row: {
+          id: string
+          name: string
+          type: string
+          subject: string
+          html_template: string
+          variables: string[] | null
+          is_active: boolean
+          version: number
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          type: string
+          subject: string
+          html_template: string
+          variables?: string[] | null
+          is_active?: boolean
+          version?: number
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          type?: string
+          subject?: string
+          html_template?: string
+          variables?: string[] | null
+          is_active?: boolean
+          version?: number
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       embedding_analytics: {
         Row: {
           created_at: string | null
@@ -919,24 +1020,155 @@ export type Database = {
       }
       stripe_customers: {
         Row: {
+          id: string
           created_at: string | null
           stripe_customer_id: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          id?: string
           created_at?: string | null
           stripe_customer_id?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          id?: string
           created_at?: string | null
           stripe_customer_id?: string | null
           updated_at?: string | null
           user_id?: string
         }
         Relationships: []
+      }
+      stripe_invoices: {
+        Row: {
+          id: string
+          stripe_invoice_id: string
+          customer_id: string
+          subscription_id: string | null
+          amount_due: number
+          amount_paid: number
+          amount_remaining: number
+          currency: string
+          status: string
+          invoice_number: string | null
+          invoice_pdf: string | null
+          hosted_invoice_url: string | null
+          paid: boolean
+          payment_intent_id: string | null
+          charge_id: string | null
+          period_start: string | null
+          period_end: string | null
+          due_date: string | null
+          paid_at: string | null
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          stripe_invoice_id: string
+          customer_id: string
+          subscription_id?: string | null
+          amount_due?: number
+          amount_paid?: number
+          amount_remaining?: number
+          currency?: string
+          status?: string
+          invoice_number?: string | null
+          invoice_pdf?: string | null
+          hosted_invoice_url?: string | null
+          paid?: boolean
+          payment_intent_id?: string | null
+          charge_id?: string | null
+          period_start?: string | null
+          period_end?: string | null
+          due_date?: string | null
+          paid_at?: string | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          stripe_invoice_id?: string
+          customer_id?: string
+          subscription_id?: string | null
+          amount_due?: number
+          amount_paid?: number
+          amount_remaining?: number
+          currency?: string
+          status?: string
+          invoice_number?: string | null
+          invoice_pdf?: string | null
+          hosted_invoice_url?: string | null
+          paid?: boolean
+          payment_intent_id?: string | null
+          charge_id?: string | null
+          period_start?: string | null
+          period_end?: string | null
+          due_date?: string | null
+          paid_at?: string | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payment_methods: {
+        Row: {
+          id: string
+          stripe_payment_method_id: string
+          customer_id: string
+          type: string
+          card_brand: string | null
+          card_last4: string | null
+          card_exp_month: number | null
+          card_exp_year: number | null
+          is_default: boolean
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          stripe_payment_method_id: string
+          customer_id: string
+          type: string
+          card_brand?: string | null
+          card_last4?: string | null
+          card_exp_month?: number | null
+          card_exp_year?: number | null
+          is_default?: boolean
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          stripe_payment_method_id?: string
+          customer_id?: string
+          type?: string
+          card_brand?: string | null
+          card_last4?: string | null
+          card_exp_month?: number | null
+          card_exp_year?: number | null
+          is_default?: boolean
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_methods_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "stripe_customers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sync_errors: {
         Row: {
@@ -1743,7 +1975,17 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      accept_invitation: {
+        Args: {
+          p_token: string
+          p_user_id: string
+        }
+        Returns: {
+          success: boolean
+          error: string | null
+        }
+      }
+      [key: string]: never
     }
     Enums: {
       stripe_payment_mode: "payment" | "subscription"

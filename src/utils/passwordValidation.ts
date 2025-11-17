@@ -7,6 +7,7 @@ export interface PasswordStrengthResult {
   isValid: boolean
   score: number // 0-4 (0 = very weak, 4 = very strong)
   feedback: string[]
+  isBreached: boolean
   requirements: {
     minLength: boolean
     hasUppercase: boolean
@@ -50,6 +51,8 @@ export function validatePasswordStrength(
     hasUppercase: /[A-Z]/.test(password),
     hasLowercase: /[a-z]/.test(password),
     hasNumber: /[0-9]/.test(password),
+    // Includes common special characters used in passwords
+    // eslint-disable-next-line no-useless-escape
     hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
   }
 
@@ -118,6 +121,7 @@ export function validatePasswordStrength(
     isValid,
     score: Math.min(4, score),
     feedback: feedback.length === 0 ? ['Password meets all requirements'] : feedback,
+    isBreached: false,
     requirements,
   }
 }
@@ -178,7 +182,7 @@ export async function checkPasswordBreached(password: string): Promise<{
 export async function validatePassword(
   password: string,
   config: PasswordValidationConfig = DEFAULT_PASSWORD_CONFIG
-): Promise<PasswordStrengthResult & { isBreached?: boolean; breachCount?: number }> {
+): Promise<PasswordStrengthResult & { breachCount?: number }> {
   const strengthResult = validatePasswordStrength(password, config)
 
   if (!strengthResult.isValid) {

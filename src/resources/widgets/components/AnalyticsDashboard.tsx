@@ -8,13 +8,8 @@ import {
   Clock,
   Users,
   Search,
-  BarChart3,
   Activity
 } from 'lucide-react'
-
-interface AnalyticsDashboardProps {
-  widgetId?: string
-}
 
 // Mock analytics data - in production, this would come from the API
 const MOCK_ANALYTICS = {
@@ -54,14 +49,14 @@ const MOCK_ANALYTICS = {
   ],
 }
 
-export const AnalyticsDashboard = ({ widgetId }: AnalyticsDashboardProps) => {
+export const AnalyticsDashboard = () => {
   const analytics = MOCK_ANALYTICS
 
   return (
     <div className="space-y-6">
       {/* Key Metrics */}
       <Grid container spacing={3}>
-        <Grid item xs={12} sm={6} md={4}>
+        <Grid size={12} columns={4}>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Views</CardTitle>
@@ -77,7 +72,7 @@ export const AnalyticsDashboard = ({ widgetId }: AnalyticsDashboardProps) => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={4}>
+        <Grid size={12} columns={4}>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Searches</CardTitle>
@@ -93,7 +88,7 @@ export const AnalyticsDashboard = ({ widgetId }: AnalyticsDashboardProps) => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={4}>
+        <Grid size={12} columns={4}>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Clicks</CardTitle>
@@ -109,7 +104,7 @@ export const AnalyticsDashboard = ({ widgetId }: AnalyticsDashboardProps) => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={4}>
+          <Grid size={12} columns={4}>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Avg Response Time</CardTitle>
@@ -124,7 +119,7 @@ export const AnalyticsDashboard = ({ widgetId }: AnalyticsDashboardProps) => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={4}>
+        <Grid size={12} columns={4}>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Unique Users</CardTitle>
@@ -140,8 +135,8 @@ export const AnalyticsDashboard = ({ widgetId }: AnalyticsDashboardProps) => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={4}>
-          <Card>
+        <Grid size={12} columns={6}>
+          <Card className="w-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Click-Through Rate</CardTitle>
               <Activity className="h-4 w-4 text-gray-500" />
@@ -158,7 +153,7 @@ export const AnalyticsDashboard = ({ widgetId }: AnalyticsDashboardProps) => {
 
       {/* Top Queries */}
       <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
+        <Grid size={12} columns={6}>
           <Card>
             <CardHeader>
               <CardTitle>Top Search Queries</CardTitle>
@@ -182,7 +177,7 @@ export const AnalyticsDashboard = ({ widgetId }: AnalyticsDashboardProps) => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid size={12} columns={6}>
           <Card>
             <CardHeader>
               <CardTitle>Recent Searches</CardTitle>
@@ -207,7 +202,7 @@ export const AnalyticsDashboard = ({ widgetId }: AnalyticsDashboardProps) => {
 
       {/* Usage Chart */}
       <Grid container spacing={3}>
-        <Grid item xs={12}>
+        <Grid size={12} columns={12}>
           <Card>
             <CardHeader>
               <CardTitle>Search Activity</CardTitle>
@@ -236,7 +231,7 @@ export const AnalyticsDashboard = ({ widgetId }: AnalyticsDashboardProps) => {
 
       {/* Performance Metrics */}
       <Grid container spacing={3}>
-        <Grid item xs={12}>
+        <Grid size={12} columns={12}>
           <Card>
             <CardHeader>
               <CardTitle>Performance Metrics</CardTitle>
@@ -244,7 +239,7 @@ export const AnalyticsDashboard = ({ widgetId }: AnalyticsDashboardProps) => {
             </CardHeader>
             <CardContent>
               <Grid container spacing={3}>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid size={12} columns={3}>
                   <div className="p-4 bg-blue-50 rounded">
                     <p className="text-sm text-gray-600 mb-1">Average Search Time</p>
                     <p className="text-2xl font-bold text-blue-600">
@@ -252,7 +247,7 @@ export const AnalyticsDashboard = ({ widgetId }: AnalyticsDashboardProps) => {
                     </p>
                   </div>
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid size={12} columns={3}>
                   <div className="p-4 bg-purple-50 rounded">
                     <p className="text-sm text-gray-600 mb-1">P95 Search Time</p>
                     <p className="text-2xl font-bold text-purple-600">
@@ -260,7 +255,7 @@ export const AnalyticsDashboard = ({ widgetId }: AnalyticsDashboardProps) => {
                     </p>
                   </div>
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid size={12} columns={3}>
                   <div className="p-4 bg-orange-50 rounded">
                     <p className="text-sm text-gray-600 mb-1">P99 Search Time</p>
                     <p className="text-2xl font-bold text-orange-600">
@@ -268,7 +263,7 @@ export const AnalyticsDashboard = ({ widgetId }: AnalyticsDashboardProps) => {
                     </p>
                   </div>
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid size={12} columns={3}>
                   <div className="p-4 bg-green-50 rounded">
                     <p className="text-sm text-gray-600 mb-1">Error Rate</p>
                     <p className="text-2xl font-bold text-green-600">

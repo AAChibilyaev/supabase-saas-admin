@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabaseClient } from '../providers/supabaseClient'
 import {
@@ -30,7 +30,7 @@ interface Invitation {
 }
 
 export const AcceptInvitation = () => {
-  const { token } = useParams<{ token: string }>()
+  const { token } = useParams<{ token?: string }>()
   const navigate = useNavigate()
   const [invitation, setInvitation] = useState<Invitation | null>(null)
   const [loading, setLoading] = useState(true)
@@ -38,17 +38,19 @@ export const AcceptInvitation = () => {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
-  useEffect(() => {
-    loadInvitation()
-  }, [token])
+  const loadInvitation = useCallback(async () => {
+    if (!token) {
+      setError('Missing invitation token')
+      setLoading(false)
+      return
+    }
 
-  const loadInvitation = async () => {
     try {
       setLoading(true)
       setError(null)
 
       const { data, error: fetchError } = await supabaseClient
-        .from('team_invitations')
+        .from<Invitation>('team_invitations')
         .select('*, tenants(*)')
         .eq('token', token)
         .eq('status', 'pending')
@@ -69,15 +71,19 @@ export const AcceptInvitation = () => {
 
       setInvitation(data)
       setLoading(false)
-    } catch (err: any) {
-      console.error('Error loading invitation:', err)
+    } catch (err: unknown) {
+      console.error('Error loading invitation:', err instanceof Error ? err.message : 'Unknown error')
       setError('Failed to load invitation')
       setLoading(false)
     }
-  }
+  }, [token])
+
+  useEffect(() => {
+    void loadInvitation()
+  }, [loadInvitation])
 
   const acceptInvitation = async () => {
-    if (!invitation) return
+    if (!invitation || !token) return
 
     try {
       setProcessing(true)
@@ -102,22 +108,22 @@ export const AcceptInvitation = () => {
       }
 
       // Call the accept_invitation function
-      const { data, error: acceptError } = await supabaseClient.rpc(
-        'accept_invitation',
+      const { data: acceptResult, error: acceptError } = await supabaseClient.rpc(
+        'accept_invitation' as unknown as never,
         {
           p_token: token,
           p_user_id: user.id,
         }
-      )
+      ) as { data: { success: boolean; error?: string } | null; error: unknown }
 
       if (acceptError) {
-        setError(acceptError.message || 'Failed to accept invitation')
+        setError(acceptError instanceof Error ? acceptError.message : 'Failed to accept invitation')
         setProcessing(false)
         return
       }
 
-      if (!data.success) {
-        setError(data.error || 'Failed to accept invitation')
+      if (!acceptResult?.success) {
+        setError(acceptResult?.error ?? 'Failed to accept invitation')
         setProcessing(false)
         return
       }
@@ -129,9 +135,9 @@ export const AcceptInvitation = () => {
       setTimeout(() => {
         navigate('/')
       }, 2000)
-    } catch (err: any) {
-      console.error('Error accepting invitation:', err)
-      setError(err.message || 'Failed to accept invitation')
+    } catch (err: unknown) {
+      console.error('Error accepting invitation:', err instanceof Error ? err.message : 'Unknown error')
+      setError(err instanceof Error ? err.message : 'Failed to accept invitation')
       setProcessing(false)
     }
   }
@@ -148,14 +154,15 @@ export const AcceptInvitation = () => {
         .eq('id', invitation.id)
 
       if (updateError) {
-        setError('Failed to decline invitation')
+        setError(updateError instanceof Error ? updateError.message : 'Failed to decline invitation')
         setProcessing(false)
         return
       }
 
       navigate('/')
-    } catch (err) {
-      setError('Failed to decline invitation')
+    } catch (err: unknown) {
+      console.error('Error declining invitation:', err instanceof Error ? err.message : 'Unknown error')
+      setError(err instanceof Error ? err.message : 'Failed to decline invitation')
       setProcessing(false)
     }
   }

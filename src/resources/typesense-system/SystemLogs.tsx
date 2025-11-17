@@ -28,7 +28,7 @@ interface LogEntry {
   timestamp: string
   level: 'error' | 'warn' | 'info' | 'debug'
   message: string
-  context?: Record<string, any>
+  context?: Record<string, unknown>
 }
 
 type LogLevel = 'all' | 'error' | 'warn' | 'info' | 'debug'
@@ -57,7 +57,7 @@ export const SystemLogs = () => {
       // Note: Typesense's /debug endpoint returns debugging information
       // In a real implementation, you might need to parse this data differently
       // or use a separate logging system
-      const debugData = result.data as any
+      const debugData = result.data as unknown as { version: string, uptime: number }
 
       // Generate sample logs based on debug data
       // In production, you'd want to integrate with your actual logging system

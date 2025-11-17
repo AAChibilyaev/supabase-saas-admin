@@ -40,10 +40,7 @@ export function MFASetup() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [factorToDelete, setFactorToDelete] = useState<string | null>(null)
 
-  useEffect(() => {
-    loadMFAFactors()
-  }, [])
-
+  // Define loadMFAFactors function before useEffect
   const loadMFAFactors = async () => {
     setLoading(true)
     const { factors: loadedFactors, error } = await getMFAFactors()
@@ -56,6 +53,10 @@ export function MFASetup() {
 
     setLoading(false)
   }
+
+  useEffect(() => {
+    loadMFAFactors()
+  }, [])
 
   const handleEnrollMFA = async () => {
     setEnrolling(true)
