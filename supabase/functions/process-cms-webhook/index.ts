@@ -10,7 +10,7 @@ const corsHeaders = {
 interface WebhookPayload {
   integration_id: string
   event_type: string
-  payload: any
+  payload: unknown
   signature?: string
 }
 
@@ -61,7 +61,7 @@ serve(async (req) => {
   }
 
   try {
-    // Initialize Supabase client
+    // Initialize Supabase client 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -80,7 +80,8 @@ serve(async (req) => {
     let webhookData: WebhookPayload
     try {
       webhookData = JSON.parse(rawBody)
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Invalid JSON payload:', error)
       return new Response(
         JSON.stringify({ error: 'Invalid JSON payload' }),
         {
@@ -170,23 +171,23 @@ serve(async (req) => {
     }
 
     // Process webhook based on event type
-    let processResult = { success: true, message: 'Event queued for processing' }
+    const processResult = { success: true, message: 'Event queued for processing' }
 
     try {
       switch (event_type) {
         case 'content.created':
         case 'content.updated':
           // Trigger incremental sync for the specific content
-          const documentId = payload.id || payload.documentId
+            const documentId = (payload as { id?: string, documentId?: string }).id || (payload as { id?: string, documentId?: string }).documentId
           if (documentId) {
             // Call sync function for this specific document
             const syncResponse = await fetch(
-              `${Deno.env.get('SUPABASE_URL')}/functions/v1/sync-to-typesense`,
+              `${Deno.env.get('SUPABASE_URL') ?? ''}/functions/v1/sync-to-typesense`,
               {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
+                  'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''}`
                 },
                 body: JSON.stringify({
                   integration_id,
@@ -204,15 +205,15 @@ serve(async (req) => {
 
         case 'content.deleted':
           // Remove document from Typesense
-          const deletedDocId = payload.id || payload.documentId
+          const deletedDocId = (payload as { id?: string, documentId?: string }).id || (payload as { id?: string, documentId?: string }).documentId
           if (deletedDocId) {
             const syncResponse = await fetch(
-              `${Deno.env.get('SUPABASE_URL')}/functions/v1/sync-to-typesense`,
+              `${Deno.env.get('SUPABASE_URL') ?? ''}/functions/v1/sync-to-typesense`,
               {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
+                  'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''}`
                 },
                 body: JSON.stringify({
                   integration_id,

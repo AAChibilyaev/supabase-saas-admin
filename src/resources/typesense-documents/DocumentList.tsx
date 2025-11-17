@@ -7,7 +7,6 @@ import {
   SelectInput,
   TopToolbar,
   CreateButton,
-  ExportButton,
   FilterButton,
   useListContext,
   useNotify,
@@ -16,11 +15,13 @@ import {
   EditButton,
   ShowButton,
 } from 'react-admin'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { typesenseClient } from '../../providers/typesenseClient'
 import { Badge } from '../../components/ui/badge'
 import { FileText, Upload, Download } from 'lucide-react'
 import type { CollectionResponse } from '../../types/typesense'
+import type { RaRecord } from 'react-admin'
+import type { Identifier } from 'react-admin'
 
 const DocumentListActions = () => {
   const { filterValues } = useListContext()
@@ -71,8 +72,9 @@ const useCollections = () => {
       try {
         const response = await typesenseClient.collections().retrieve()
         setCollections(response)
-      } catch (error: any) {
-        notify(`Failed to load collections: ${error.message}`, { type: 'error' })
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        notify(`Failed to load collections: ${errorMessage}`, { type: 'error' })
         console.error('Error loading collections:', error)
       } finally {
         setLoading(false)
@@ -116,14 +118,14 @@ const DocumentFilters = () => {
 const DynamicDocumentDatagrid = () => {
   const { filterValues, data } = useListContext()
   const { collections } = useCollections()
-  const [collectionSchema, setCollectionSchema] = useState<CollectionResponse | null>(null)
-
-  useEffect(() => {
-    if (filterValues?.collection) {
-      const collection = collections.find((c) => c.name === filterValues.collection)
-      setCollectionSchema(collection || null)
+  const collectionName = filterValues?.collection
+  
+  const collectionSchema = useMemo(() => {
+    if (collectionName) {
+      return collections.find((c) => c.name === collectionName) || null
     }
-  }, [filterValues?.collection, collections])
+    return null
+  }, [collectionName, collections])
 
   if (!filterValues?.collection) {
     return (
@@ -175,7 +177,7 @@ const DynamicDocumentDatagrid = () => {
               key={field.name}
               source={field.name}
               label={field.name}
-              render={(record: any) => (
+              render={(record: Record<string, unknown>) => (
                 <Badge variant={record[field.name] ? 'default' : 'secondary'}>
                   {record[field.name] ? 'Yes' : 'No'}
                 </Badge>
@@ -190,7 +192,7 @@ const DynamicDocumentDatagrid = () => {
               key={field.name}
               source={field.name}
               label={field.name}
-              render={(record: any) => {
+              render={(record: Record<string, unknown>) => {
                 const value = record[field.name]
                 if (!value || !Array.isArray(value)) return null
                 return (
@@ -225,7 +227,7 @@ const DynamicDocumentDatagrid = () => {
       {/* Search score (if available) */}
       <FunctionField
         label="Relevance"
-        render={(record: any) => {
+        render={(record: Record<string, unknown> & { _score?: number }) => {
           if (record._score !== undefined) {
             return <Badge variant="outline">{record._score.toFixed(2)}</Badge>
           }
@@ -235,10 +237,10 @@ const DynamicDocumentDatagrid = () => {
 
       <FunctionField
         label="Actions"
-        render={(record: any) => (
+        render={(record: Record<string, unknown>) => (
           <div className="flex gap-2">
-            <ShowButton record={record} />
-            <EditButton record={record} />
+            <ShowButton record={record as RaRecord<Identifier>} />
+            <EditButton record={record as RaRecord<Identifier>} />
           </div>
         )}
       />

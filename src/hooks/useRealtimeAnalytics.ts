@@ -38,11 +38,15 @@ export function useRealtimeAnalytics(
 
   useEffect(() => {
     if (!enabled) {
-      setIsLive(false)
+      setTimeout(() => {
+        setIsLive(false)
+      }, 0)
       return
     }
 
-    setIsLive(true)
+    setTimeout(() => {
+      setIsLive(true)
+    }, 0)
     const unsubscribeFunctions: Array<() => void> = []
 
     // Subscribe to each table

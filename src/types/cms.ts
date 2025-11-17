@@ -13,7 +13,7 @@ export interface CMSConfig {
   apiSecret?: string
   spaceId?: string // Contentful
   environment?: string // Contentful
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export interface Field {
@@ -33,7 +33,7 @@ export interface FieldMapping {
 export interface FetchOptions {
   limit?: number
   offset?: number
-  filters?: Record<string, any>
+  filters?: Record<string, unknown>
   incrementalSync?: boolean
   lastSyncDate?: string
 }
@@ -43,7 +43,7 @@ export interface SyncResult {
   documentsFetched: number
   documentsSynced: number
   documentsFailed: number
-  errors?: Array<{ message: string; details?: any }>
+  errors?: Array<{ message: string; details?: unknown }>
 }
 
 export interface WebhookConfig {
@@ -64,15 +64,15 @@ export interface CMSConnector {
   fetchDocuments(
     config: CMSConfig,
     options: FetchOptions
-  ): Promise<any[]>
+  ): Promise<unknown[]>
 
   // Field mapping
   getAvailableFields(config: CMSConfig): Promise<Field[]>
-  mapFields(sourceData: any, mappings: FieldMapping[]): any
+  mapFields(sourceData: unknown, mappings: FieldMapping[]): unknown
 
   // Webhooks (optional)
   setupWebhook?(config: CMSConfig, webhookUrl: string): Promise<WebhookConfig>
-  validateWebhookSignature?(payload: any, signature: string, secret: string): boolean
+  validateWebhookSignature?(payload: unknown, signature: string, secret: string): boolean
 }
 
 export interface SyncSchedule {

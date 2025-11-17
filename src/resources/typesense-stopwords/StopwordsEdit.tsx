@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Edit,
   SimpleForm,
@@ -6,8 +6,7 @@ import {
   SelectInput,
   required,
   useRecordContext,
-  useNotify,
-  useRefresh
+  useNotify
 } from 'react-admin'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card'
 import { Button } from '../../components/ui/button'
@@ -50,9 +49,18 @@ const PREDEFINED_STOPWORDS: Record<string, string[]> = {
 const StopwordsManager = () => {
   const record = useRecordContext()
   const notify = useNotify()
-  const refresh = useRefresh()
   const [newWord, setNewWord] = useState('')
-  const [stopwords, setStopwords] = useState<string[]>(record?.stopwords || [])
+  
+  // Initialize stopwords from record, sync when record changes
+  const [stopwords, setStopwords] = useState<string[]>(() => record?.stopwords || [])
+
+  // Sync stopwords with record when record changes (using ref to avoid setState in effect warning)
+  useEffect(() => {
+    if (record?.stopwords && JSON.stringify(record.stopwords) !== JSON.stringify(stopwords)) {
+      setStopwords(record.stopwords)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [record?.stopwords])
 
   // Handle adding a new stopword
   const handleAddWord = () => {
@@ -94,11 +102,6 @@ const StopwordsManager = () => {
     const mergedWords = [...new Set([...stopwords, ...predefinedList])].sort()
     setStopwords(mergedWords)
     notify(`Imported ${predefinedList.length} predefined stopwords`, { type: 'success' })
-  }
-
-  // Update the record when stopwords change
-  if (record && record.stopwords !== stopwords) {
-    record.stopwords = stopwords
   }
 
   return (

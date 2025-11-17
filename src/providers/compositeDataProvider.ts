@@ -1,12 +1,14 @@
-import { DataProvider } from 'react-admin'
+import type { DataProvider } from 'react-admin'
 import { dataProvider as supabaseDataProvider } from './dataProvider'
 import { typesenseDataProvider } from './typesenseDataProvider'
 import {
   typesenseClient,
   isTypesenseEnabled,
   withRetry,
-  TypesenseSearchParams,
+  type TypesenseSearchParams,
+  type TypesenseSearchResult,
 } from './typesenseClient'
+import type { CollectionListResponse } from '../types/typesense'
 
 /**
  * Configuration for Typesense-enabled resources
@@ -187,7 +189,7 @@ const searchWithTypesense = async (
     )
 
     // Convert Typesense result to React Admin format
-    const data = result.hits?.map((hit) => hit.document) || []
+    const data = result.hits?.map((hit: TypesenseSearchResult['hits'][number]) => hit.document) || []
     const total = result.found || 0
 
     return {
@@ -226,7 +228,11 @@ export const createCompositeDataProvider = (): DataProvider => {
         isTypesenseResource(resource) &&
         params.filter?.q
       ) {
-        const typesenseResult = await searchWithTypesense(resource, params)
+        const typesenseResult = await searchWithTypesense(resource, {
+          pagination: { page: params.pagination?.page ?? 1, perPage: params.pagination?.perPage ?? 10 },
+          sort: { field: params.sort?.field ?? '', order: params.sort?.order ?? 'asc' },
+          filter: params.filter ?? {},
+        })
 
         // If Typesense search succeeded, return the result
         if (typesenseResult) {
@@ -336,9 +342,9 @@ export const checkTypesenseAvailability = async (): Promise<{
     const collections = await typesenseClient.collections().retrieve()
     return {
       available: true,
-      collections: collections.map((c) => c.name),
+      collections: collections.map((c: CollectionListResponse['collections'][number]) => c.name ?? ''),
     }
-  } catch (error) {
+  } catch (error: unknown) {
     return {
       available: false,
       collections: [],

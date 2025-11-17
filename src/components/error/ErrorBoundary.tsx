@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/react"
-import { Component, ReactNode } from "react"
+import { Component, type ReactNode } from "react"
 import { ErrorFallback } from "./ErrorFallback"
 
 interface Props {
@@ -11,7 +11,7 @@ interface Props {
 
 interface State {
   hasError: boolean
-  error: Error | null
+  error: unknown | null
 }
 
 /**
@@ -33,7 +33,7 @@ class ErrorBoundary extends Component<Props, State> {
     this.state = { hasError: false, error: null }
   }
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: unknown): State {
     return { hasError: true, error }
   }
 
@@ -75,7 +75,7 @@ class ErrorBoundary extends Component<Props, State> {
 
       return (
         <ErrorFallback
-          error={this.state.error}
+          error={this.state.error as Error | null}
           resetError={this.handleReset}
         />
       )
@@ -91,7 +91,7 @@ class ErrorBoundary extends Component<Props, State> {
  */
 export const SentryErrorBoundary = Sentry.withErrorBoundary(ErrorBoundary, {
   fallback: ({ error, resetError }) => (
-    <ErrorFallback error={error} resetError={resetError} />
+    <ErrorFallback error={error as Error | null} resetError={resetError} />
   ),
   showDialog: false,
 })

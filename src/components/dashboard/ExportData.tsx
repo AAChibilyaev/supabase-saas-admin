@@ -13,9 +13,8 @@ import { useToast } from '../../hooks/use-toast'
 import { format } from 'date-fns'
 
 interface ExportDataProps {
-  data: any[]
+  data: Record<string, unknown>[]
   filename?: string
-  includeCharts?: boolean
 }
 
 export const ExportData = ({ data, filename = 'dashboard-data' }: ExportDataProps) => {

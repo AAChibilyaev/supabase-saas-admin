@@ -60,7 +60,7 @@ export function PlanSelector({ plans, currentSubscription, onPlanSelected }: Pla
 
   const renderFeatures = (features: Record<string, boolean | string | number>) => {
     return Object.entries(features)
-      .filter(([_, value]) => value !== false)
+      .filter(([, value]) => value !== false)
       .map(([key, value]) => {
         const label = key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
         return (

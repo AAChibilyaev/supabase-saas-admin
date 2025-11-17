@@ -2,7 +2,6 @@ import { Grid } from '@mui/material'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card'
 import { Label } from '../../../components/ui/label'
 import { Input } from '../../../components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select'
 import { Slider } from '../../../components/ui/slider'
 
 interface ThemeEditorProps {
@@ -13,7 +12,7 @@ interface ThemeEditorProps {
     borderRadius: string
     spacing: string
   }
-  onChange: (updates: any) => void
+  onChange: (updates: ThemeEditorProps['config']) => void
 }
 
 const FONT_FAMILIES = [
@@ -44,15 +43,18 @@ export const ThemeEditor = ({ config, onChange }: ThemeEditorProps) => {
     onChange({
       primaryColor: preset.primary,
       secondaryColor: preset.secondary,
+      fontFamily: config.fontFamily,
+      borderRadius: config.borderRadius,
+      spacing: config.spacing,
     })
   }
 
   const handleBorderRadiusChange = (value: number[]) => {
-    onChange({ borderRadius: `${value[0]}rem` })
+    onChange({ borderRadius: `${value[0]}rem`, fontFamily: config.fontFamily, spacing: config.spacing, primaryColor: config.primaryColor, secondaryColor: config.secondaryColor })
   }
 
   const handleSpacingChange = (value: number[]) => {
-    onChange({ spacing: `${value[0]}rem` })
+    onChange({ spacing: `${value[0]}rem`, fontFamily: config.fontFamily, borderRadius: config.borderRadius, primaryColor: config.primaryColor, secondaryColor: config.secondaryColor })
   }
 
   const getBorderRadiusValue = () => {
@@ -67,7 +69,7 @@ export const ThemeEditor = ({ config, onChange }: ThemeEditorProps) => {
 
   return (
     <Grid container spacing={3}>
-      <Grid item xs={12} md={6}>
+      <Grid size={12} columns={6} component="section">
         <Card>
           <CardHeader>
             <CardTitle>Color Scheme</CardTitle>
@@ -100,13 +102,13 @@ export const ThemeEditor = ({ config, onChange }: ThemeEditorProps) => {
                   id="primaryColor"
                   type="color"
                   value={config.primaryColor}
-                  onChange={(e) => onChange({ primaryColor: e.target.value })}
+                  onChange={(e) => onChange({ primaryColor: e.target.value, secondaryColor: config.secondaryColor, fontFamily: config.fontFamily, borderRadius: config.borderRadius, spacing: config.spacing })}
                   className="w-20 h-10"
                 />
                 <Input
                   type="text"
                   value={config.primaryColor}
-                  onChange={(e) => onChange({ primaryColor: e.target.value })}
+                  onChange={(e) => onChange({ primaryColor: e.target.value, secondaryColor: config.secondaryColor, fontFamily: config.fontFamily, borderRadius: config.borderRadius, spacing: config.spacing })}
                   className="flex-1"
                   placeholder="#3b82f6"
                 />
@@ -124,13 +126,13 @@ export const ThemeEditor = ({ config, onChange }: ThemeEditorProps) => {
                   id="secondaryColor"
                   type="color"
                   value={config.secondaryColor}
-                  onChange={(e) => onChange({ secondaryColor: e.target.value })}
+                  onChange={(e) => onChange({ secondaryColor: e.target.value, primaryColor: config.primaryColor, fontFamily: config.fontFamily, borderRadius: config.borderRadius, spacing: config.spacing })}
                   className="w-20 h-10"
                 />
                 <Input
                   type="text"
                   value={config.secondaryColor}
-                  onChange={(e) => onChange({ secondaryColor: e.target.value })}
+                  onChange={(e) => onChange({ secondaryColor: e.target.value, primaryColor: config.primaryColor, fontFamily: config.fontFamily, borderRadius: config.borderRadius, spacing: config.spacing })}
                   className="flex-1"
                   placeholder="#64748b"
                 />
@@ -162,8 +164,8 @@ export const ThemeEditor = ({ config, onChange }: ThemeEditorProps) => {
         </Card>
       </Grid>
 
-      <Grid item xs={12} md={6}>
-        <Card>
+      <Grid size={12} columns={6} component="div">
+        <Card className="w-full">
           <CardHeader>
             <CardTitle>Typography & Spacing</CardTitle>
             <CardDescription>
@@ -177,7 +179,7 @@ export const ThemeEditor = ({ config, onChange }: ThemeEditorProps) => {
               <select
                 id="fontFamily"
                 value={config.fontFamily}
-                onChange={(e) => onChange({ fontFamily: e.target.value })}
+                onChange={(e) => onChange({ fontFamily: e.target.value, primaryColor: config.primaryColor, secondaryColor: config.secondaryColor, borderRadius: config.borderRadius, spacing: config.spacing })}
                 className="w-full border rounded px-3 py-2"
               >
                 {FONT_FAMILIES.map((font) => (
@@ -254,7 +256,7 @@ export const ThemeEditor = ({ config, onChange }: ThemeEditorProps) => {
         </Card>
       </Grid>
 
-      <Grid item xs={12}>
+      <Grid size={12} columns={12} component="div">
         <Card>
           <CardHeader>
             <CardTitle>Custom CSS</CardTitle>

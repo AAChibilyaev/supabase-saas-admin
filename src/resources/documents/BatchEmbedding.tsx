@@ -20,8 +20,10 @@ import {
   SelectValue,
 } from '../../components/ui/select'
 import { Sparkles, AlertCircle, CheckCircle2, XCircle, DollarSign, Zap } from 'lucide-react'
-import { supabaseClient } from '../../providers/compositeDataProvider'
-import { EMBEDDING_MODELS, EmbeddingModel } from '../../services/openai'
+import { supabaseClient } from '../../providers/supabaseClient'
+import { EMBEDDING_MODELS } from '../../services/openai'
+import type { EmbeddingModel } from '../../services/openai'
+import type { EmbeddingResult } from '../../services/openai'
 
 export const BatchEmbeddingButton = () => {
   const { selectedIds } = useListContext()
@@ -33,7 +35,7 @@ export const BatchEmbeddingButton = () => {
   const [processing, setProcessing] = useState(false)
   const [model, setModel] = useState<EmbeddingModel>('text-embedding-3-small')
   const [forceRegenerate, setForceRegenerate] = useState(false)
-  const [results, setResults] = useState<any>(null)
+  const [results, setResults] = useState<EmbeddingResult[] | null>(null)
 
   const handleBatchGenerate = async () => {
     setProcessing(true)
@@ -52,7 +54,7 @@ export const BatchEmbeddingButton = () => {
       if (error) throw error
 
       if (data?.success) {
-        setResults(data.results)
+        setResults(data.results.details)
         notify(
           `Batch complete! ${data.results.successful} successful, ${data.results.failed} failed, ${data.results.skipped} skipped`,
           { type: 'success' }
@@ -60,9 +62,9 @@ export const BatchEmbeddingButton = () => {
         refresh()
         unselectAll()
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to generate batch embeddings:', error)
-      notify(error?.message || 'Failed to generate batch embeddings', { type: 'error' })
+      notify(error instanceof Error ? error.message : 'Failed to generate batch embeddings', { type: 'error' })
     } finally {
       setProcessing(false)
     }
@@ -164,19 +166,19 @@ export const BatchEmbeddingButton = () => {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-green-600" />
-                  <span>Successful: {results.successful}</span>
+                  <span>Successful: {results.filter(result => result.success).length}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <XCircle className="w-4 h-4 text-red-600" />
-                  <span>Failed: {results.failed}</span>
+                  <span>Failed: {results.filter(result => !result.success).length}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-yellow-600" />
-                  <span>Skipped: {results.skipped}</span>
+                  <span>Skipped: {results.filter(result => result.error).length}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Zap className="w-4 h-4 text-blue-600" />
-                  <span>Tokens: {results.totalTokens.toLocaleString()}</span>
+                  <span>Tokens: {results.reduce((acc, result) => acc + result.tokens, 0).toLocaleString()}</span>
                 </div>
               </div>
               <div className="pt-2 border-t border-blue-300">
@@ -184,13 +186,13 @@ export const BatchEmbeddingButton = () => {
                   <span className="font-medium">Total Cost:</span>
                   <span className="font-mono font-bold flex items-center">
                     <DollarSign className="w-4 h-4 mr-1" />
-                    {results.totalCost.toFixed(6)}
+                    {results.reduce((acc, result) => acc + (result.tokens / 1_000_000) * modelInfo.costPer1M, 0).toFixed(6)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium">Processing Time:</span>
                   <span className="font-mono">
-                    {(results.totalProcessingTime / 1000).toFixed(2)}s
+                    {(results.reduce((acc, result) => acc + (result.processingTime ?? 0), 0) / 1000).toFixed(2)}s
                   </span>
                 </div>
               </div>

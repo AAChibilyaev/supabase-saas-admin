@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 import { Label } from './ui/label'
 import { Button } from './ui/button'
 import { useToast } from '../hooks/use-toast'
-import { getEmailPreferences, updateEmailPreferences, EmailPreferences } from '../services/email'
+import type { EmailPreferences } from '../services/email'
+import { getEmailPreferences, updateEmailPreferences } from '../services/email'
 import { Switch } from './ui/switch'
 import { supabase } from '../lib/supabase'
 
@@ -13,11 +14,7 @@ export function EmailPreferencesSettings() {
   const [saving, setSaving] = useState(false)
   const { toast } = useToast()
 
-  useEffect(() => {
-    loadPreferences()
-  }, [])
-
-  const loadPreferences = async () => {
+  const loadPreferences = useCallback(async () => {
     try {
       setLoading(true)
       const { data: { user } } = await supabase.auth.getUser()
@@ -38,7 +35,11 @@ export function EmailPreferencesSettings() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [toast])
+
+  useEffect(() => {
+    void loadPreferences()
+  }, [loadPreferences])
 
   const handleSave = async () => {
     if (!preferences) return

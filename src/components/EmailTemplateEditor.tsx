@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 import { Label } from './ui/label'
 import { Input } from './ui/input'
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { useToast } from '../hooks/use-toast'
 import { supabase } from '../lib/supabase'
 import { EmailType } from '../services/email'
+import type { Database } from '../types/database.types'
 
 interface EmailTemplate {
   id: string
@@ -22,20 +23,18 @@ interface EmailTemplate {
   updated_at: string
 }
 
+type EmailTemplateRow = Database['public']['Tables']['email_templates']['Row']
+
 export function EmailTemplateEditor() {
-  const [templates, setTemplates] = useState<EmailTemplate[]>([])
-  const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null)
-  const [editedTemplate, setEditedTemplate] = useState<Partial<EmailTemplate>>({})
+  const [templates, setTemplates] = useState<EmailTemplateRow[]>([])
+  const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplateRow | null>(null)
+  const [editedTemplate, setEditedTemplate] = useState<Partial<EmailTemplateRow>>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [previewHtml, setPreviewHtml] = useState('')
   const { toast } = useToast()
 
-  useEffect(() => {
-    loadTemplates()
-  }, [])
-
-  const loadTemplates = async () => {
+  const loadTemplates = useCallback(async () => {
     try {
       setLoading(true)
       const { data, error } = await supabase
@@ -55,7 +54,11 @@ export function EmailTemplateEditor() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [toast])
+
+  useEffect(() => {
+    void loadTemplates()
+  }, [loadTemplates])
 
   const handleSelectTemplate = (templateId: string) => {
     const template = templates.find(t => t.id === templateId)
@@ -241,7 +244,7 @@ export function EmailTemplateEditor() {
                   {/* Version Info */}
                   <div className="text-xs text-muted-foreground">
                     Version: {selectedTemplate.version} | Last updated:{' '}
-                    {new Date(selectedTemplate.updated_at).toLocaleString()}
+                    {selectedTemplate.updated_at ? new Date(selectedTemplate.updated_at as string).toLocaleString() : 'N/A'}
                   </div>
                 </>
               )}

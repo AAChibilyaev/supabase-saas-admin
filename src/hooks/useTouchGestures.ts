@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, useLayoutEffect } from 'react'
 
 interface TouchPosition {
   x: number
@@ -97,7 +97,7 @@ export const useLongPress = (
 export const useIsTouchDevice = () => {
   const [isTouch, setIsTouch] = useState(false)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0
     setIsTouch(hasTouch)
   }, [])

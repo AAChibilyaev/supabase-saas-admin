@@ -5,11 +5,9 @@ import { Badge } from '../../components/ui/badge'
 import { Alert, AlertDescription } from '../../components/ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs'
 import {
-  Activity,
   BarChart3,
   Network,
   Gauge,
-  TrendingUp,
   AlertTriangle,
   RefreshCw
 } from 'lucide-react'
@@ -23,7 +21,7 @@ interface StatsData {
     [endpoint: string]: number
   }
   pending_write_batches?: number
-  [key: string]: any
+  [key: string]: unknown
 }
 
 interface MetricsData {
@@ -128,12 +126,6 @@ export const SystemMetrics = () => {
     const totalNum = parseFloat(total)
     if (totalNum === 0) return 0
     return Math.round((usedNum / totalNum) * 100)
-  }
-
-  const formatNumber = (num: number): string => {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(2)}M`
-    if (num >= 1000) return `${(num / 1000).toFixed(2)}K`
-    return num.toFixed(2)
   }
 
   if (loading && !stats && !metrics) {

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { useNotify, Button as RAButton } from 'react-admin'
+import { useState, useEffect, useCallback } from 'react'
+import { useNotify } from 'react-admin'
 import { Badge } from '../../components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card'
 import { Input } from '../../components/ui/input'
@@ -20,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../components/ui/select'
-import { Calendar } from '../../components/ui/calendar'
 import {
   Popover,
   PopoverContent,
@@ -29,12 +28,12 @@ import {
 import { Activity, Download, Filter, Calendar as CalendarIcon, RefreshCw } from 'lucide-react'
 import { typesenseClient } from '../../providers/typesenseClient'
 import { format, subDays } from 'date-fns'
-import jsonexport from 'jsonexport'
+import { jsonToCsv } from '../../utils/exporter'
 
 interface AnalyticsEvent {
   type: string
   name: string
-  data?: Record<string, any>
+  data?: Record<string, unknown>
   timestamp?: number
   user_id?: string
   doc_id?: string
@@ -62,11 +61,7 @@ export const AnalyticsEvents = () => {
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const notify = useNotify()
 
-  useEffect(() => {
-    loadEvents()
-  }, [filters.type, filters.collection])
-
-  const loadEvents = async () => {
+  const loadEvents = useCallback(async () => {
     if (!typesenseClient) {
       notify('Typesense client not configured', { type: 'error' })
       setLoading(false)
@@ -141,14 +136,19 @@ export const AnalyticsEvents = () => {
       filteredEvents.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
 
       setEvents(filteredEvents)
-    } catch (error: any) {
-      notify(`Failed to load analytics events: ${error.message}`, { type: 'error' })
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      notify(`Failed to load analytics events: ${errorMessage}`, { type: 'error' })
       console.error('Error loading analytics events:', error)
       setEvents([])
     } finally {
       setLoading(false)
     }
-  }
+  }, [filters.type, filters.collection, filters.searchQuery, notify])
+
+  useEffect(() => {
+    loadEvents()
+  }, [loadEvents])
 
   const handleExport = async () => {
     try {
@@ -163,7 +163,7 @@ export const AnalyticsEvents = () => {
         Additional_Data: JSON.stringify(event.data || {})
       }))
 
-      const csv = await jsonexport(exportData)
+      const csv = jsonToCsv(exportData)
       const blob = new Blob([csv], { type: 'text/csv' })
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -175,8 +175,9 @@ export const AnalyticsEvents = () => {
       window.URL.revokeObjectURL(url)
 
       notify('Events exported successfully', { type: 'success' })
-    } catch (error: any) {
-      notify(`Failed to export events: ${error.message}`, { type: 'error' })
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      notify(`Failed to export events: ${errorMessage}`, { type: 'error' })
     }
   }
 
@@ -469,7 +470,7 @@ export const AnalyticsEvents = () => {
                       </TableCell>
                       <TableCell>
                         {event.data?.collection ? (
-                          <Badge variant="secondary">{event.data.collection}</Badge>
+                          <Badge variant="secondary">{String(event.data.collection)}</Badge>
                         ) : (
                           <span className="text-gray-400">-</span>
                         )}
@@ -482,22 +483,22 @@ export const AnalyticsEvents = () => {
                               <span className="font-mono">{event.doc_id}</span>
                             </div>
                           )}
-                          {event.data?.position && (
+                          {event.data?.position !== undefined && event.data.position !== null && (
                             <div>
                               <span className="text-gray-500">Position:</span>{' '}
-                              {event.data.position}
+                              <span className="font-mono">{String(event.data.position)}</span>
                             </div>
                           )}
-                          {event.data?.results_count !== undefined && (
+                          {event.data?.results_count !== undefined && event.data.results_count !== null && (
                             <div>
                               <span className="text-gray-500">Results:</span>{' '}
-                              {event.data.results_count}
+                              <span className="font-mono">{String(event.data.results_count)}</span>
                             </div>
                           )}
-                          {event.data?.value && (
+                          {event.data?.value !== undefined && event.data.value !== null && (
                             <div>
                               <span className="text-gray-500">Value:</span>{' '}
-                              {event.data.currency} {event.data.value}
+                              {event.data.currency ? String(event.data.currency) : ''} {String(event.data.value)}
                             </div>
                           )}
                         </div>

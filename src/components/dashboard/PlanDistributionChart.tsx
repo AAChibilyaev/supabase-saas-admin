@@ -30,8 +30,22 @@ const PLAN_LABELS: Record<string, string> = {
   enterprise: 'Enterprise'
 }
 
+interface PieChartProps {
+  cx: number
+  cy: number
+  midAngle: number
+  innerRadius: number
+  outerRadius: number
+  startAngle: number
+  endAngle: number
+  fill: string
+  payload: PlanDistributionData
+  percent: number
+  value: number
+}
+
 // Custom active shape for interactive pie chart
-const renderActiveShape = (props: any) => {
+const renderActiveShape = (props: PieChartProps) => {
   const RADIAN = Math.PI / 180
   const {
     cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle,
@@ -129,7 +143,7 @@ export const PlanDistributionChart = ({ data, isLoading }: PlanDistributionChart
     fill: PLAN_COLORS[item.plan.toLowerCase()] || '#64748b'
   }))
 
-  const onPieEnter = (_: any, index: number) => {
+  const onPieEnter = (_: unknown, index: number) => {
     setActiveIndex(index)
   }
 

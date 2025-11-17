@@ -9,9 +9,8 @@ import {
   Sparkles,
   Clock,
   Zap,
-  DollarSign,
 } from 'lucide-react'
-import { supabaseClient } from '../../providers/compositeDataProvider'
+import { supabaseClient } from '../../providers/supabaseClient'
 import {
   Dialog,
   DialogContent,
@@ -20,13 +19,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../../components/ui/dialog'
-import { EMBEDDING_MODELS, EmbeddingModel } from '../../services/openai'
+import { EMBEDDING_MODELS, type EmbeddingModel } from '../../services/openai'
 
-interface EmbeddingStatusProps {
-  label?: string
-}
-
-export const EmbeddingStatus = ({ label }: EmbeddingStatusProps) => {
+export const EmbeddingStatus = () => {
   const record = useRecordContext()
   const notify = useNotify()
   const refresh = useRefresh()
@@ -56,9 +51,9 @@ export const EmbeddingStatus = ({ label }: EmbeddingStatusProps) => {
       } else if (data?.skipped) {
         notify('Embedding already exists', { type: 'info' })
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to generate embedding:', error)
-      notify(error?.message || 'Failed to generate embedding', { type: 'error' })
+      notify(error instanceof Error ? error.message : 'Failed to generate embedding', { type: 'error' })
     } finally {
       setGenerating(false)
     }
@@ -170,11 +165,7 @@ export const EmbeddingStatus = ({ label }: EmbeddingStatusProps) => {
   )
 }
 
-interface EmbeddingInfoFieldProps {
-  label?: string
-}
-
-export const EmbeddingInfoField = ({ label }: EmbeddingInfoFieldProps) => {
+export const EmbeddingInfoField = () => {
   const record = useRecordContext()
 
   if (!record?.embedding_generated) {

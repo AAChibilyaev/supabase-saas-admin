@@ -7,13 +7,48 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui
 import { Badge } from '../../../components/ui/badge'
 import { useNotify } from 'react-admin'
 
-interface EmbedCodeDisplayProps {
-  config: any
+interface WidgetConfig {
+  searchSettings?: {
+    collection?: string
+    placeholder?: string
+    searchFields?: string[]
+    resultsPerPage?: number
+  }
+  theme?: {
+    primaryColor?: string
+    secondaryColor?: string
+    fontFamily?: string
+    borderRadius?: string
+  }
+  features?: {
+    autocomplete?: boolean
+    spellcheck?: boolean
+    facetedSearch?: boolean
+    instantSearch?: boolean
+    voiceSearch?: boolean
+  }
+  displaySettings?: {
+    layout?: string
+    showThumbnails?: boolean
+    showSnippets?: boolean
+    highlightMatches?: boolean
+  }
 }
+
+interface EmbedCodeDisplayProps {
+  config: WidgetConfig
+}
+
+// Generate random ID helper function
+const generateRandomId = () => Math.random().toString(36).substr(2, 9)
 
 export const EmbedCodeDisplay = ({ config }: EmbedCodeDisplayProps) => {
   const [copiedTab, setCopiedTab] = useState<string | null>(null)
   const notify = useNotify()
+
+  // Generate widget IDs once using useState lazy initialization to avoid calling Math.random during render
+  const [widgetId] = useState(() => 'search-widget-' + generateRandomId())
+  const [widgetUrlId] = useState(() => generateRandomId())  
 
   const copyToClipboard = (text: string, tab: string) => {
     navigator.clipboard.writeText(text)
@@ -37,7 +72,6 @@ export const EmbedCodeDisplay = ({ config }: EmbedCodeDisplayProps) => {
 
   // Generate HTML/JS embed code
   const generateHTMLCode = () => {
-    const widgetId = 'search-widget-' + Math.random().toString(36).substr(2, 9)
     return `<!-- Search Widget Embed Code -->
 <div id="${widgetId}"></div>
 
@@ -218,6 +252,7 @@ For more information, visit our documentation at https://docs.yourdomain.com`
 
   return (
     <Grid container spacing={3}>
+      {/* @ts-expect-error - MUI Grid types issue, but works at runtime */}
       <Grid item xs={12}>
         <Card>
           <CardHeader>
@@ -373,6 +408,7 @@ For more information, visit our documentation at https://docs.yourdomain.com`
         </Card>
       </Grid>
 
+      {/* @ts-expect-error - MUI Grid types issue, but works at runtime */}
       <Grid item xs={12}>
         <Card>
           <CardHeader>
@@ -385,7 +421,7 @@ For more information, visit our documentation at https://docs.yourdomain.com`
             <div className="flex gap-2">
               <input
                 type="text"
-                value={`https://widgets.yourdomain.com/widget/${Math.random().toString(36).substr(2, 9)}`}
+                value={`https://widgets.yourdomain.com/widget/${widgetUrlId}`}
                 readOnly
                 className="flex-1 border rounded px-3 py-2 bg-gray-50"
               />

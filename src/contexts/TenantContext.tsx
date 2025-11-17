@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
+import type { ReactNode } from 'react'
 import { supabaseClient } from '../providers/supabaseClient'
 
 export interface Tenant {
@@ -40,10 +41,21 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
       try {
         setIsLoading(true)
 
+        // Check if user has an active session first
+        const { data: sessionData } = await supabaseClient.auth.getSession()
+        if (!sessionData?.session) {
+          // No active session - user is not authenticated, this is normal
+          setIsLoading(false)
+          return
+        }
+
         // Get current user
         const { data: userData, error: userError } = await supabaseClient.auth.getUser()
         if (userError || !userData.user) {
-          console.error('Error getting user:', userError)
+          // Only log non-session errors
+          if (userError?.name !== 'AuthSessionMissingError') {
+            console.error('Error getting user:', userError)
+          }
           setIsLoading(false)
           return
         }
@@ -66,7 +78,7 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
 
         // Extract tenants from user_tenants relationship
         const tenants: Tenant[] = (userTenants || [])
-          .filter(ut => ut.tenants)
+          .filter((ut): ut is typeof ut & { tenants: NonNullable<typeof ut.tenants> } => !!ut.tenants)
           .map(ut => ({
             id: ut.tenants.id,
             name: ut.tenants.name,
@@ -144,7 +156,7 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
   return <TenantContext.Provider value={value}>{children}</TenantContext.Provider>
 }
 
-export const useTenantContext = (): TenantContextType => {
+  export const useTenantContext = (): TenantContextType => {
   const context = useContext(TenantContext)
   if (context === undefined) {
     throw new Error('useTenantContext must be used within a TenantProvider')
