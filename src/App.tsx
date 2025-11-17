@@ -21,6 +21,7 @@ import { CurationSetList, CurationSetEdit, CurationSetCreate } from './resources
 import { SynonymSetList, SynonymSetEdit, SynonymSetCreate } from './resources/typesense-synonyms'
 import { StopwordsList, StopwordsEdit, StopwordsCreate } from './resources/typesense-stopwords'
 import { AliasList, AliasEdit, AliasCreate } from './resources/typesense-aliases'
+import { AnalyticsDashboard, AnalyticsRules, AnalyticsEvents } from './resources/typesense-analytics'
 
 // Icons from lucide-react
 import {
@@ -36,7 +37,9 @@ import {
   Target,
   BookA,
   Ban,
-  Link2
+  Link2,
+  Activity,
+  TrendingUp
 } from 'lucide-react'
 
 // Custom theme based on shadcn
@@ -155,6 +158,26 @@ const App = () => (
         create={AliasCreate}
         icon={Link2}
         options={{ label: 'Collection Aliases' }}
+      />
+
+      {/* Typesense Analytics */}
+      <Resource
+        name="typesense-analytics"
+        list={AnalyticsDashboard}
+        icon={TrendingUp}
+        options={{ label: 'Analytics Dashboard' }}
+      />
+      <Resource
+        name="typesense-analytics-rules"
+        list={AnalyticsRules}
+        icon={Settings}
+        options={{ label: 'Analytics Rules' }}
+      />
+      <Resource
+        name="typesense-analytics-events"
+        list={AnalyticsEvents}
+        icon={Activity}
+        options={{ label: 'Analytics Events' }}
       />
 
       {/* User Management */}

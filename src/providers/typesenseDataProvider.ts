@@ -418,6 +418,11 @@ export const typesenseDataProvider: DataProvider = {
       throw new Error('Typesense client is not initialized')
     }
 
+    // System Operations
+    if (resource === 'typesense-system') {
+      return typesenseSystemProvider.create(params.data.operation)
+    }
+
     // Aliases Management
     if (resource === 'typesense-aliases') {
       try {
@@ -625,6 +630,27 @@ export const typesenseDataProvider: DataProvider = {
         }
       } catch (error) {
         console.error('Failed to create synonym set:', error)
+        throw error
+      }
+    }
+    }
+
+    // NL Models Management
+    if (resource === 'typesense-nl-models') {
+      try {
+        const { model_name, ...modelData } = params.data
+        const result = await (typesenseClient as any)
+          .models()
+          .upsert(model_name, modelData)
+
+        return {
+          data: {
+            ...result,
+            id: result.model_name || result.id
+          }
+        }
+      } catch (error) {
+        console.error('Failed to create NL model:', error)
         throw error
       }
     }
@@ -865,6 +891,28 @@ export const typesenseDataProvider: DataProvider = {
   delete: async (resource, params) => {
     if (!typesenseClient) {
       throw new Error('Typesense client is not initialized')
+    }
+
+    // Aliases Management
+    if (resource === 'typesense-aliases') {
+      try {
+        await typesenseClient.aliases(params.id).delete()
+        return { data: { id: params.id } }
+      } catch (error) {
+        console.error('Failed to delete alias:', error)
+        throw error
+      }
+    }
+
+    // Analytics Rules
+    if (resource === 'typesense-analytics-rules') {
+      try {
+        await (typesenseClient as any).analytics.rules(params.id).delete()
+        return { data: { id: params.id } }
+      } catch (error) {
+        console.error('Failed to delete analytics rule:', error)
+        throw error
+      }
     }
 
     // Aliases Management
