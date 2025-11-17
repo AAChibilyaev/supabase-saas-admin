@@ -31,6 +31,8 @@ import {
   SystemOperations,
   SystemLogs
 } from './resources/typesense-system'
+import { MultiSearchForm } from './resources/typesense-search'
+import { CollectionList, CollectionCreate, CollectionEdit, CollectionShow } from './resources/typesense-collections'
 
 // Icons from lucide-react
 import {
@@ -52,7 +54,9 @@ import {
   Server,
   MessageSquare,
   Brain,
-  Languages
+  Languages,
+  SearchX,
+  Database
 } from 'lucide-react'
 
 // Custom theme based on shadcn
@@ -133,6 +137,15 @@ const App = () => (
         options={{ label: 'Typesense API Keys' }}
       />
       <Resource
+        name="typesense-collections"
+        list={CollectionList}
+        create={CollectionCreate}
+        edit={CollectionEdit}
+        show={CollectionShow}
+        icon={Database}
+        options={{ label: 'Collections' }}
+      />
+      <Resource
         name="presets"
         list={PresetList}
         edit={PresetEdit}
@@ -195,6 +208,12 @@ const App = () => (
         create={NLModelCreate}
         icon={Brain}
         options={{ label: 'NL Search Models' }}
+      />
+      <Resource
+        name="typesense-search"
+        list={MultiSearchForm}
+        icon={SearchX}
+        options={{ label: 'Multi-Search' }}
       />
 
       {/* Typesense Analytics */}

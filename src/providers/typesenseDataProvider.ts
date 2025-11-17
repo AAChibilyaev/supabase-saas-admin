@@ -8,6 +8,20 @@ export const typesenseDataProvider: DataProvider = {
       throw new Error('Typesense client is not initialized')
     }
 
+    // Collections Management
+    if (resource === 'typesense-collections') {
+      try {
+        const collections = await typesenseClient.collections().retrieve()
+        return {
+          data: collections.map((col: any) => ({ ...col, id: col.name })),
+          total: collections.length
+        }
+      } catch (error) {
+        console.error('Failed to retrieve Typesense collections:', error)
+        throw error
+      }
+    }
+
     // System Operations - not applicable for getList
     if (resource === 'typesense-system') {
       return {
@@ -225,6 +239,22 @@ export const typesenseDataProvider: DataProvider = {
   getOne: async (resource, params) => {
     if (!typesenseClient) {
       throw new Error('Typesense client is not initialized')
+    }
+
+    // Collections Management
+    if (resource === 'typesense-collections') {
+      try {
+        const result = await typesenseClient.collections(params.id).retrieve()
+        return {
+          data: {
+            ...result,
+            id: result.name
+          }
+        }
+      } catch (error) {
+        console.error('Failed to retrieve collection:', error)
+        throw error
+      }
     }
 
     // Stemming Dictionaries Management
@@ -469,6 +499,22 @@ export const typesenseDataProvider: DataProvider = {
   create: async (resource, params) => {
     if (!typesenseClient) {
       throw new Error('Typesense client is not initialized')
+    }
+
+    // Collections Management
+    if (resource === 'typesense-collections') {
+      try {
+        const result = await typesenseClient.collections().create(params.data)
+        return {
+          data: {
+            ...result,
+            id: result.name
+          }
+        }
+      } catch (error) {
+        console.error('Failed to create collection:', error)
+        throw error
+      }
     }
 
     // Stemming Dictionaries Management
@@ -723,6 +769,24 @@ export const typesenseDataProvider: DataProvider = {
   update: async (resource, params) => {
     if (!typesenseClient) {
       throw new Error('Typesense client is not initialized')
+    }
+
+    // Collections Management
+    if (resource === 'typesense-collections') {
+      try {
+        const result = await typesenseClient
+          .collections(params.id)
+          .update(params.data)
+        return {
+          data: {
+            ...result,
+            id: result.name || params.id
+          }
+        }
+      } catch (error) {
+        console.error('Failed to update collection:', error)
+        throw error
+      }
     }
 
     // Stemming Dictionaries Management
@@ -981,6 +1045,17 @@ export const typesenseDataProvider: DataProvider = {
       throw new Error('Typesense client is not initialized')
     }
 
+    // Collections Management
+    if (resource === 'typesense-collections') {
+      try {
+        await typesenseClient.collections(params.id).delete()
+        return { data: { id: params.id } }
+      } catch (error) {
+        console.error('Failed to delete collection:', error)
+        throw error
+      }
+    }
+
     // Stemming Dictionaries Management
     if (resource === 'typesense-stemming') {
       try {
@@ -1179,6 +1254,15 @@ export const typesenseDataProvider: DataProvider = {
   deleteMany: async (resource, params) => {
     if (!typesenseClient) {
       throw new Error('Typesense client is not initialized')
+    }
+
+    // Collections Management
+    if (resource === 'typesense-collections') {
+      const promises = params.ids.map(id =>
+        typesenseClient.collections(id).delete()
+      )
+      await Promise.all(promises)
+      return { data: params.ids }
     }
 
     // Stemming Dictionaries Management
