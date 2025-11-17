@@ -174,6 +174,27 @@ supabase-admin/
 
 ## 🔧 Configuration
 
+### TypeScript Type Generation
+
+This project uses auto-generated TypeScript types from the Supabase database schema for full type safety.
+
+Generate types from local database:
+```bash
+npm run types:generate
+```
+
+Generate types from remote (linked) database:
+```bash
+npm run types:generate:remote
+```
+
+Check TypeScript types:
+```bash
+npm run types:check
+```
+
+For detailed documentation, see [Type Generation Guide](./docs/type-generation.md).
+
 ### Adding shadcn/ui Components
 
 ```bash
