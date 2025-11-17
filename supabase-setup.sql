@@ -94,3 +94,56 @@ ON CONFLICT DO NOTHING;
 -- Создание индексов для производительности
 CREATE INDEX IF NOT EXISTS idx_posts_user_id ON posts(user_id);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
+-- ===========================================================================
+-- SECURE VIEWS (Issue #22 - Security Fix)
+-- ===========================================================================
+-- Note: These views are created WITHOUT SECURITY DEFINER to ensure
+-- Row Level Security policies are properly enforced.
+-- Views use security_invoker mode to run with querying user's permissions.
+
+-- Drop existing views if they exist (in case they were created with SECURITY DEFINER)
+DROP VIEW IF EXISTS public.embedding_statistics CASCADE;
+DROP VIEW IF EXISTS public.cms_connection_stats CASCADE;
+
+-- View: embedding_statistics
+-- Purpose: Aggregated statistics for embeddings per tenant
+-- Security: Enforces RLS via security_invoker
+CREATE VIEW public.embedding_statistics AS
+SELECT
+  tenant_id,
+  COUNT(*) as total_embeddings,
+  COUNT(*) FILTER (WHERE success = true) as successful_embeddings,
+  COUNT(*) FILTER (WHERE success = false) as failed_embeddings,
+  AVG(processing_time_ms) as avg_processing_time_ms,
+  AVG(token_count) as avg_token_count,
+  MIN(created_at) as first_embedding_at,
+  MAX(created_at) as last_embedding_at
+FROM embedding_analytics
+GROUP BY tenant_id;
+
+-- View: cms_connection_stats
+-- Purpose: Connection statistics with sync log aggregations
+-- Security: Enforces RLS via security_invoker
+CREATE VIEW public.cms_connection_stats AS
+SELECT
+  c.id as connection_id,
+  c.tenant_id,
+  c.name,
+  c.type,
+  c.is_active,
+  c.last_sync_at,
+  c.last_sync_status,
+  c.last_sync_count,
+  COUNT(l.id) as total_syncs,
+  COUNT(*) FILTER (WHERE l.status = 'success') as successful_syncs,
+  COUNT(*) FILTER (WHERE l.status = 'failed') as failed_syncs,
+  SUM(l.documents_synced) as total_documents_synced
+FROM cms_connections c
+LEFT JOIN cms_sync_logs l ON c.id = l.integration_id
+GROUP BY c.id, c.tenant_id, c.name, c.type, c.is_active,
+         c.last_sync_at, c.last_sync_status, c.last_sync_count;
+
+-- Enable security_invoker to ensure views respect RLS policies
+ALTER VIEW public.embedding_statistics SET (security_invoker = on);
+ALTER VIEW public.cms_connection_stats SET (security_invoker = on);
