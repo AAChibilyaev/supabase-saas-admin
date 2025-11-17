@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+  <rect width="72" height="72" fill="#000000"/>
+  <g transform="translate(36, 36)">
+    <!-- Database icon -->
+    <ellipse cx="0" cy="-12" rx="18" ry="6" fill="#3ECF8E" stroke="#ffffff" stroke-width="2"/>
+    <rect x="-18" y="-12" width="36" height="24" fill="#3ECF8E"/>
+    <ellipse cx="0" cy="12" rx="18" ry="6" fill="#3ECF8E" stroke="#ffffff" stroke-width="2"/>
+    <!-- Admin star -->
+    <polygon points="-6,18 6,18 3,20.571428571428573 9,28.8 0,24 -9,28.8 -3,20.571428571428573"
+             fill="#ffffff" stroke="#3ECF8E" stroke-width="1"/>
+  </g>
+</svg>

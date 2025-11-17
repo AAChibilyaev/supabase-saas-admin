@@ -4,6 +4,8 @@ import './index.css'
 import App from './App.tsx'
 import { ThemeProvider } from './components/ThemeProvider'
 import { ErrorBoundary } from './components/error'
+import { InstallPrompt } from './components/pwa/InstallPrompt'
+import { UpdateNotification } from './components/pwa/UpdateNotification'
 import * as Sentry from "@sentry/react"
 
 // Initialize Sentry
@@ -100,6 +102,8 @@ createRoot(document.getElementById('root')!).render(
         disableTransitionOnChange={false}
       >
         <App />
+        <InstallPrompt />
+        <UpdateNotification />
       </ThemeProvider>
     </ErrorBoundary>
   </StrictMode>,

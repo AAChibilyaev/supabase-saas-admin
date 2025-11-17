@@ -3,14 +3,22 @@ import type { LayoutProps } from 'react-admin'
 import type { ReactNode } from 'react'
 import { TenantSwitcher } from '../TenantSwitcher'
 import { CustomMenu } from './CustomMenu'
+import { MobileMenu } from './MobileMenu'
 import { ThemeToggle } from '../ui/theme-toggle'
 
 const CustomAppBar = () => (
-  <AppBar>
-    <div className="flex-1" />
+  <AppBar className="mobile:px-2">
     <div className="flex items-center gap-2">
-      <ThemeToggle />
-      <TenantSwitcher />
+      {/* Mobile Menu Button */}
+      <div className="md:hidden">
+        <MobileMenu />
+      </div>
+      <div className="flex-1" />
+      {/* Desktop Controls */}
+      <div className="flex items-center gap-2">
+        <ThemeToggle />
+        <TenantSwitcher />
+      </div>
     </div>
   </AppBar>
 )

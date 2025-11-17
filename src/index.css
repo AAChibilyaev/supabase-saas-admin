@@ -75,4 +75,60 @@
   html.theme-transitioning *::after {
     transition: none !important;
   }
+
+  /* Mobile-specific styles */
+  @media (max-width: 767px) {
+    body {
+      font-size: 14px;
+    }
+
+    /* Safe area insets for notched devices */
+    body {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+  }
+
+  /* Touch-optimized tap targets */
+  @media (max-width: 1023px) {
+    button,
+    a,
+    input[type="button"],
+    input[type="submit"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+
+  /* Prevent text selection on touch devices for better UX */
+  @media (max-width: 1023px) {
+    .no-select {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+  }
+
+  /* Smooth scrolling for mobile */
+  @media (max-width: 767px) {
+    html {
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+
+  /* Hide scrollbar on mobile for cleaner look */
+  @media (max-width: 767px) {
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+  }
 }
