@@ -1,5 +1,5 @@
 import { Admin, Resource, defaultTheme } from 'react-admin'
-import { dataProvider } from './providers/dataProvider'
+import { compositeDataProvider } from './providers/compositeDataProvider'
 import { authProvider } from './providers/authProvider'
 import { Dashboard } from './Dashboard'
 import { TenantProvider } from './contexts/TenantContext'
@@ -11,6 +11,11 @@ import { DocumentList } from './resources/documents'
 import { SearchLogList } from './resources/search-logs'
 import { ApiKeyList } from './resources/api-keys'
 import { UserList, UserEdit, UserCreate } from './resources/users'
+import {
+  ApiKeyList as TypesenseApiKeyList,
+  ApiKeyCreate as TypesenseApiKeyCreate,
+  ApiKeyShow as TypesenseApiKeyShow
+} from './resources/typesense-api-keys'
 
 // Icons from lucide-react
 import {
@@ -60,7 +65,7 @@ const theme = {
 const App = () => (
   <TenantProvider>
     <Admin
-      dataProvider={dataProvider}
+      dataProvider={compositeDataProvider}
       authProvider={authProvider}
       theme={theme}
       dashboard={Dashboard}
@@ -93,6 +98,14 @@ const App = () => (
         list={ApiKeyList}
         icon={Key}
         options={{ label: 'API Keys' }}
+      />
+      <Resource
+        name="typesense-keys"
+        list={TypesenseApiKeyList}
+        create={TypesenseApiKeyCreate}
+        show={TypesenseApiKeyShow}
+        icon={Key}
+        options={{ label: 'Typesense API Keys' }}
       />
 
       {/* User Management */}
