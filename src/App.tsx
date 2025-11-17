@@ -13,7 +13,11 @@ import { InvitationList, InvitationCreate } from './resources/team-invitations'
 import { TeamMemberList } from './resources/team-members'
 import { ActivityFeed } from './resources/activity-logs'
 import { SecurityList } from './resources/security'
-import { IntegrationList, IntegrationCreate, IntegrationEdit } from './resources/cms-integrations'
+import { IntegrationList, IntegrationCreate, IntegrationEdit, SyncLogList } from './resources/cms-integrations'
+import { ContactMessageList, ContactMessageShow } from './resources/contact-messages'
+import { SyncErrorList, SyncErrorShow } from './resources/sync-errors'
+import { StripeCustomerList, StripeCustomerShow } from './resources/stripe-customers'
+import { UserProductList, UserProductShow } from './resources/user-products'
 import {
   ApiKeyList as TypesenseApiKeyList,
   ApiKeyCreate as TypesenseApiKeyCreate,
@@ -74,7 +78,10 @@ import {
   ShieldCheck,
   Plug,
   Webhook,
-  Layers
+  Layers,
+  CreditCard,
+  Package,
+  AlertTriangle
 } from 'lucide-react'
 
 // Custom light theme based on shadcn
@@ -395,6 +402,20 @@ const App = () => (
         icon={Wallet}
         options={{ label: 'Tenant Billing' }}
       />
+      <Resource
+        name="stripe_customers"
+        list={StripeCustomerList}
+        show={StripeCustomerShow}
+        icon={CreditCard}
+        options={{ label: 'Stripe Customers' }}
+      />
+      <Resource
+        name="user_products"
+        list={UserProductList}
+        show={UserProductShow}
+        icon={Package}
+        options={{ label: 'User Subscriptions' }}
+      />
 
       {/* CMS & Integrations */}
       <Resource
@@ -412,6 +433,7 @@ const App = () => (
       />
       <Resource
         name="cms_sync_logs"
+        list={SyncLogList}
         icon={Activity}
         options={{ label: 'CMS Sync Logs' }}
       />
@@ -428,6 +450,22 @@ const App = () => (
         show={WidgetShow}
         icon={Layers}
         options={{ label: 'Search Widgets' }}
+      />
+
+      {/* Admin Tools */}
+      <Resource
+        name="contact_messages"
+        list={ContactMessageList}
+        show={ContactMessageShow}
+        icon={Mail}
+        options={{ label: 'Contact Messages' }}
+      />
+      <Resource
+        name="sync_errors"
+        list={SyncErrorList}
+        show={SyncErrorShow}
+        icon={AlertTriangle}
+        options={{ label: 'Sync Errors' }}
       />
     </ThemeSelector>
   </TenantProvider>

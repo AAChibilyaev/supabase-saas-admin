@@ -18,7 +18,7 @@ interface WebhookSetupProps {
 export const WebhookSetup = ({ connector, config, connectionId }: WebhookSetupProps) => {
   const { toast } = useToast()
   const [webhookConfig, setWebhookConfig] = useState<WebhookConfig | null>(null)
-  const [setting up, setSettingUp] = useState(false)
+  const [settingUp, setSettingUp] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // Generate webhook URL for this connection

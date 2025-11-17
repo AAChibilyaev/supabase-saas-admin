@@ -38,6 +38,7 @@ const TENANT_FILTERED_RESOURCES = [
   'search_queries_log',
   'sync_errors',
   'team_invitations',
+  'user_products',
 ]
 
 // Get current tenant context from localStorage

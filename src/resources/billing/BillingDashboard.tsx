@@ -6,12 +6,13 @@
  */
 
 import { useState, useEffect } from 'react'
-import { Loader2, CreditCard, Bell, TrendingUp } from 'lucide-react'
-import { Title } from 'react-admin'
+import { Loader2, CreditCard, Bell, TrendingUp, Users, Package } from 'lucide-react'
+import { Title, useRedirect } from 'react-admin'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { PlanSelector } from '@/components/billing/PlanSelector'
 import { SubscriptionManager } from '@/components/billing/SubscriptionManager'
 import { InvoiceList } from '@/components/billing/InvoiceList'
@@ -28,7 +29,10 @@ export function BillingDashboard() {
   const [invoices, setInvoices] = useState<StripeInvoice[]>([])
   const [alerts, setAlerts] = useState<BillingAlert[]>([])
   const [usage, setUsage] = useState<TenantUsage | null>(null)
+  const [customerCount, setCustomerCount] = useState(0)
+  const [activeSubscriptionCount, setActiveSubscriptionCount] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const redirect = useRedirect()
 
   useEffect(() => {
     loadBillingData()
@@ -68,6 +72,22 @@ export function BillingDashboard() {
       setInvoices(data.invoices)
       setAlerts(data.alerts)
       setUsage(data.usage)
+
+      // Fetch customer count
+      const { count: customers } = await supabase
+        .from('stripe_customers')
+        .select('*', { count: 'exact', head: true })
+
+      setCustomerCount(customers || 0)
+
+      // Fetch active subscription count
+      const { count: activeSubscriptions } = await supabase
+        .from('user_products')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_active', true)
+        .eq('type', 'subscription')
+
+      setActiveSubscriptionCount(activeSubscriptions || 0)
     } catch (err) {
       console.error('Error loading billing data:', err)
       setError('Failed to load billing data')
@@ -159,7 +179,7 @@ export function BillingDashboard() {
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Current Plan</CardTitle>
@@ -204,6 +224,32 @@ export function BillingDashboard() {
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Documents this period
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:bg-accent" onClick={() => redirect('/stripe_customers')}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Customers</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{customerCount}</div>
+                <p className="text-xs text-muted-foreground">
+                  Total Stripe customers
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:bg-accent" onClick={() => redirect('/user_products')}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Active Subscriptions</CardTitle>
+                <Package className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{activeSubscriptionCount}</div>
+                <p className="text-xs text-muted-foreground">
+                  Active subscriptions
                 </p>
               </CardContent>
             </Card>
